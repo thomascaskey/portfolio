@@ -76,7 +76,7 @@
   }
   @keyframes pf-fade { from { opacity: 0; } }
   @keyframes pf-rise { from { opacity: 0; transform: translateY(28px); } }
-  @media (prefers-reduced-motion: reduce) { .pf-scrim, .pf-frame, .pf-scene::before { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { .pf-scrim, .pf-frame { animation: none; } }
 
   /* left: the house itself, standing in its own little rainy night */
   .pf-card:focus { outline: none; }
@@ -87,15 +87,11 @@
       radial-gradient(60% 22% at 50% 100%, color-mix(in srgb, var(--pf-acc) 38%, transparent), transparent 70%),
       linear-gradient(180deg, #060918 0%, #0d122d 30%, #181e44 60%, #282753 85%, #302a58 100%);
   }
-  .pf-scene::before {   /* rain */
-    content: ''; position: absolute; inset: -40px 0 0; pointer-events: none; opacity: .5;
-    background-image:
-      repeating-linear-gradient(100deg, transparent 0 22px, rgba(160, 175, 220, .22) 22px 23px, transparent 23px 41px),
-      repeating-linear-gradient(98deg, transparent 0 31px, rgba(160, 175, 220, .14) 31px 32px, transparent 32px 57px);
-    background-size: 100% 18px, 100% 26px;
-    animation: pf-rain .5s steps(4) infinite;
+  .pf-rain {   /* pixel rain, drawn at the house's own pixel size and falling in front of it */
+    position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none;
+    image-rendering: pixelated; image-rendering: crisp-edges;
   }
-  @keyframes pf-rain { to { background-position: -4px 18px, -6px 26px; } }
+  .pf-plaque { z-index: 2; }
   .pf-moon { position: absolute; top: 22px; right: 26px; width: 12px; height: 12px; background: #e4eaff;
     box-shadow: 0 0 0 2px #b8c2e8 inset, 0 0 24px 6px rgba(120, 140, 220, .25); }
   .pf-house { position: relative; display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
@@ -244,6 +240,7 @@
         <div class="pf-moon"></div>
         <div class="pf-plaque" id="pf-no-wrap">No. 01</div>
         <canvas class="pf-house" id="pf-house"></canvas>
+        <canvas class="pf-rain" id="pf-rain"></canvas>
         <div class="pf-street"></div>
         <div class="pf-water"></div>
       </div>
@@ -2710,11 +2707,35 @@ function fitHouse() {
   const snap = HOUSE_PIX[OPEN].snap, box = houseCv.parentElement;
   const roomW = box.clientWidth - 40, roomH = box.clientHeight - (OPEN === BOAT_I ? 30 : 56) - 18;
   if (OPEN === TOWER_I && roomH < snap.height) {   // the tower is tall: never squeeze it below 1:1, let it rise out of view
-    houseCv.style.width = snap.width + 'px'; houseCv.style.height = snap.height + 'px'; return;
+    houseCv.style.width = snap.width + 'px'; houseCv.style.height = snap.height + 'px'; CARD_PX = 1; return;
   }
   const s = Math.max(1, Math.min(OPEN === KIWI_I ? 6 : 4, Math.floor(Math.min(roomW / snap.width, roomH / snap.height))));
   houseCv.style.width = snap.width * s + 'px'; houseCv.style.height = snap.height * s + 'px';
+  CARD_PX = s;
 }
+// rain in the card: the same slanted streaks as the street, at the house's pixel size, following the R rain level
+let CARD_PX = 3, CARD_DROPS = [], cardRainOn = false;
+const rainCv = $('pf-rain'), rctx = rainCv.getContext('2d');
+const calmMotion = matchMedia('(prefers-reduced-motion: reduce)');
+function cardRain(ts) {
+  if (pf.hidden) { cardRainOn = false; return; }
+  const box = rainCv.parentElement, px = Math.max(2, CARD_PX);
+  const w = Math.ceil(box.clientWidth / px), h = Math.ceil(box.clientHeight / px);
+  if (rainCv.width !== w || rainCv.height !== h) {
+    rainCv.width = w; rainCv.height = h;
+    const R = rng(77);
+    CARD_DROPS = Array.from({ length: Math.round(w * h / 90) }, () => ({ x: R() * (w + h / 4), y: R() * h, v: 0.55 + R() * 0.5, len: 2 + Math.floor(R() * 3), a: 0.18 + R() * 0.3 }));
+  }
+  rctx.clearRect(0, 0, w, h);
+  const n = Math.round(CARD_DROPS.length * RAIN_F / RAIN_MAX * 1.4), t = calmMotion.matches ? 0 : ts / 1000;
+  for (let i = 0; i < Math.min(n, CARD_DROPS.length); i++) {
+    const d = CARD_DROPS[i], y = (d.y + t * d.v * 60) % (h + 8) - 6, x = Math.floor(d.x - (y + 6) / 4);
+    rctx.fillStyle = `rgba(170, 185, 230, ${d.a})`;
+    for (let k = 0; k < d.len; k++) rctx.fillRect(x - Math.floor(k / 4), Math.floor(y) + k, 1, 1);
+  }
+  requestAnimationFrame(cardRain);
+}
+function startCardRain() { if (!cardRainOn) { cardRainOn = true; requestAnimationFrame(cardRain); } }
 const linkBtn = ([label, url], k) => {
   const a = Object.assign(document.createElement('a'), { className: 'pf-btn' + (k ? '' : ' primary'), textContent: label, href: url });
   if (url === '#') a.addEventListener('click', e => e.preventDefault());
@@ -2811,6 +2832,7 @@ function openProject(hi) {
   labelsEl.hidden = true; LABELS.forEach(lb => lb.classList.remove('hot')); hint.classList.remove('show');
   if (first) {
     pf.hidden = false;
+    startCardRain();
     pf.querySelector('.pf-card').focus({ preventScroll: true });
   }
   fitHouse();
