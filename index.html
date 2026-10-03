@@ -328,24 +328,6 @@ const PORTFOLIO = [
     links: [['Case study', 'https://www.alphero.com/case-studies/2degrees-app-case-study']],
   },
   {
-    title: 'Goodnotes', kind: 'Education', year: '2023 to now', accent: '#d46a2e',
-    tagline: 'Building new features for the Goodnotes Education team, fully in SwiftUI.',
-    summary: 'Since moving to Amsterdam I have worked fully remote in the Education team at Goodnotes, owning and building new features end to end with developers, product and designers. Goodnotes is a large, complex, cross-platform codebase that people use for long stretches of time, so continuous releases stay high quality through strong testing and QA practices. I have also helped teammates bring AI workflows into their daily work while keeping the human touch.',
-    role: 'Lead Software Engineer',
-    platform: 'iPad, iPhone and Mac',
-    stack: ['Swift', 'SwiftUI', 'Testing and QA', 'Continuous releases', 'AI workflows'],
-    links: [['Goodnotes for Education', 'https://www.goodnotes.com/education']],
-  },
-  {
-    title: 'Sharesies', kind: 'Investing platform', year: '2021 to 2023', accent: '#7fbfa8',
-    tagline: 'Leading Sharesies from the start of its mobile journey to a scalable native platform.',
-    summary: 'I joined Sharesies at the beginning of its mobile journey and owned the iOS platform: building the team, setting the roadmap and choosing our practices. I worked closely with leadership to advocate for a considered shift towards mobile. Our principles of cohesion and simplicity shaped how the apps joined existing systems, and they were built in SwiftUI with an easy to understand, modular structure.',
-    role: 'Mobile Tech Lead',
-    platform: 'iOS',
-    stack: ['Swift', 'SwiftUI', 'Modular architecture', 'Roadmapping', 'Team building'],
-    links: [['Sharesies', 'https://www.sharesies.com']],
-  },
-  {
     title: 'TVNZ+ and 1News', kind: 'Streaming and news', year: 'Alphero', accent: '#f79a3c',
     tagline: "New Zealand's free-to-air broadcaster, live and on demand for over two million people.",
     summary: 'TVNZ+ streams live and on-demand TV, and 1News delivers the news with layouts driven from the backend through modular, API-rendered components. Keeping more than ten third-party platforms and SDKs healthy, including Segment and Nielsen analytics and Split A/B testing, took steady proactive maintenance. The work won a Silver at the Best Awards.',
@@ -364,9 +346,27 @@ const PORTFOLIO = [
     links: [['Case study', 'https://www.alphero.com/case-studies/drive-go-app-case-study']],
   },
   { ...PLACEHOLDER, accent: '#b8c2e8' },
+  {
+    title: 'Sharesies', kind: 'Investing platform', year: '2021 to 2023', accent: '#7fbfa8',
+    tagline: 'Leading Sharesies from the start of its mobile journey to a scalable native platform.',
+    summary: 'I joined Sharesies at the beginning of its mobile journey and owned the iOS platform: building the team, setting the roadmap and choosing our practices. I worked closely with leadership to advocate for a considered shift towards mobile. Our principles of cohesion and simplicity shaped how the apps joined existing systems, and they were built in SwiftUI with an easy to understand, modular structure.',
+    role: 'Mobile Tech Lead',
+    platform: 'iOS',
+    stack: ['Swift', 'SwiftUI', 'Modular architecture', 'Roadmapping', 'Team building'],
+    links: [['Sharesies', 'https://www.sharesies.com']],
+  },
+  {
+    title: 'Goodnotes', kind: 'Education', year: '2023 to now', accent: '#d46a2e',
+    tagline: 'Building new features for the Goodnotes Education team, fully in SwiftUI.',
+    summary: 'Since moving to Amsterdam I have worked fully remote in the Education team at Goodnotes, owning and building new features end to end with developers, product and designers. Goodnotes is a large, complex, cross-platform codebase that people use for long stretches of time, so continuous releases stay high quality through strong testing and QA practices. I have also helped teammates bring AI workflows into their daily work while keeping the human touch.',
+    role: 'Lead Software Engineer',
+    platform: 'iPad, iPhone and Mac',
+    stack: ['Swift', 'SwiftUI', 'Testing and QA', 'Continuous releases', 'AI workflows'],
+    links: [['Goodnotes for Education', 'https://www.goodnotes.com/education']],
+  },
 ];
 
-/* CONTACT — the Westertoren. rows: [label, text, link]; a mailto: link gets a Copy button,
+/* CONTACT — the clock tower. rows: [label, text, link]; a mailto: link gets a Copy button,
    '' means plain text, '#' shows the row greyed out until you add the link. */
 const CONTACT = {
   title: 'Get in touch',
@@ -711,7 +711,7 @@ function drawSideCanal() {
   const cols = ['#1b2043', '#1e2448', '#191e3e', '#20264a'].map(C);
   const wins = ['#8a5a3a', '#a8703f', '#6a4636'].map(C), dark = C('#12162e');
   let x = 448;
-  const ws = [17, 20, 15, 22, 18, 16, 19, 21, 17, 27];   // runs on to the right edge of the scene
+  const ws = [17, 20, 15, 22, 18, 16];
   for (const w of ws) {
     const top = 156 + Math.floor(R() * 20), c = cols[Math.floor(R() * cols.length)], step = R() < 0.5;
     for (let i = 0; i < w; i++) {
@@ -755,15 +755,15 @@ function mat(name) {
   const m = MATS[name];
   return { base: C(m[0]), dark: C(m[1]), lite: C(m[2]), brick: m[3], trim: C(m[4]), trimL: mix(C(m[4]), C('#9aa4c4'), 0.4), trimD: mix(C(m[4]), C(m[1]), 0.5), frame: C(m[5]) };
 }
-const HOUSES = [   // 8 houses, one per portfolio entry; Goodnotes (bookshop) and Sharesies (bank) in the middle
-  { x: -8,  w: 56, fl: 4, fh: 24, gable: 'step', g: 30, m: 'brickR', steps: 3, lit: 0.45 },
-  { x: 48,  w: 54, fl: 4, fh: 23, gable: 'bell', g: 30, m: 'cream', lit: 0.6 },
-  { x: 102, w: 56, fl: 4, fh: 25, gable: 'cornice', g: 5, m: 'black', chimney: 140, lit: 0.35 },
-  { x: 158, w: 64, fl: 3, fh: 27, gable: 'step', g: 32, m: 'brickB', steps: 4, shop: 'books', lit: 0.6 },
-  { x: 222, w: 62, fl: 3, fh: 27, gable: 'pediment', g: 14, m: 'gray', shop: 'bank', lit: 0.55 },
-  { x: 284, w: 58, fl: 4, fh: 25, gable: 'step', g: 34, m: 'brickD', steps: 4, chimney: 329, lit: 0.55 },
-  { x: 342, w: 56, fl: 4, fh: 24, gable: 'bell', g: 28, m: 'green', lit: 0.45 },
-  { x: 398, w: 54, fl: 4, fh: 23, gable: 'neck', g: 32, m: 'ochre', lit: 0.5 },
+const HOUSES = [   // 8 houses: six wide canal houses, then Sharesies (bank) and Goodnotes (bookshop) past the bridge
+  { x: -8,  w: 74, fl: 4, fh: 24, gable: 'step', g: 32, m: 'brickR', steps: 3, lit: 0.45 },
+  { x: 66,  w: 76, fl: 4, fh: 23, gable: 'bell', g: 32, m: 'cream', lit: 0.6 },
+  { x: 142, w: 78, fl: 4, fh: 25, gable: 'cornice', g: 5, m: 'black', chimney: 200, lit: 0.35 },
+  { x: 220, w: 76, fl: 4, fh: 24, gable: 'neck', g: 34, m: 'brickB', lit: 0.55 },
+  { x: 296, w: 80, fl: 4, fh: 25, gable: 'step', g: 36, m: 'brickD', steps: 4, chimney: 352, lit: 0.55 },
+  { x: 376, w: 76, fl: 4, fh: 24, gable: 'bell', g: 30, m: 'green', lit: 0.45 },
+  { x: 548, w: 46, fl: 3, fh: 27, gable: 'pediment', g: 12, m: 'gray', shop: 'bank', lit: 0.55 },
+  { x: 594, w: 50, fl: 3, fh: 27, gable: 'step', g: 30, m: 'brickB', steps: 3, shop: 'books', lit: 0.6 },
 ];
 const SPECIAL = {
   '1:3:1': { dyn: 'cat', style: 'warm' },
@@ -1014,7 +1014,7 @@ function drawHouse(h, hi) {
     glow(Afar, ax + 0.5, oy + 0.5, 4, 4, WINL, 0.2, { bands: 2 });
   }
   // upper floors
-  const nW = w >= 56 ? 4 : w >= 40 ? 3 : 2;
+  const nW = w >= 70 ? 5 : w >= 56 ? 4 : w >= 40 ? 3 : 2;
   const ww = (w - nW * 9) / (nW + 1) >= 3.5 ? 9 : 7;
   const gap = (w - nW * ww) / (nW + 1);
   for (let f = 0; f < h.fl; f++) {
@@ -1068,7 +1068,7 @@ function drawBookshop(h) {
   for (let x = x0 + 3; x < x0 + w - 3; x++) { px(x, 185, goldD); px(x, 192, goldD); }
   sign('BOOKS', x0 + w / 2 - 6, 187, gold);
   // display window: shelves of books in warm light
-  const wx0 = x0 + 5, wx1 = x0 + 43, wy0 = 195, wy1 = 211, R = rng(4242);
+  const wx0 = x0 + 5, wx1 = x0 + w - 21, wy0 = 195, wy1 = 211, R = rng(4242);
   const spines = ['#b04a36', '#3a5e92', '#d2a648', '#4a7e5c', '#8e4a7e', '#d8723a', '#ece0b8', '#5a3a6a'].map(C);
   const G = LIT.warm;
   for (let y = wy0; y <= wy1; y++) for (let x = wx0; x <= wx1; x++) {
@@ -1085,15 +1085,16 @@ function drawBookshop(h) {
       x += bw;
     }
   }
-  for (let y = wy0; y <= wy1; y++) px(x0 + 24, y, greenD, 1);
+  for (let y = wy0; y <= wy1; y++) px(Math.round((wx0 + wx1) / 2), y, greenD, 1);
   for (let x = wx0 - 1; x <= wx1 + 1; x++) { px(x, wy0 - 1, gold); px(x, wy1 + 1, greenD); }
   // glazed door with a brass handle
-  rect(x0 + 47, 194, 12, 20, greenD);
-  for (let y = 196; y <= 211; y++) for (let x = x0 + 49; x <= x0 + 56; x++) px(x, y, y === 203 ? greenD : G[y < 200 ? 1 : 2], 1);
-  px(x0 + 49, 205, gold);
-  glow(Afar, x0 + 24, 203, 40, 24, WINL, 0.5, { bands: 5, pow: 1.5, lm: LM, lmI: 0.6 });
-  glow(Afar, x0 + 26, 217, 36, 6, WINL, 0.45, { bands: 4, pow: 1.2, lm: LM, lmI: 0.3 });
-  STOOPS.push({ x: x0 + 44, w: 18 });
+  const dx = x0 + w - 17;
+  rect(dx, 194, 12, 20, greenD);
+  for (let y = 196; y <= 211; y++) for (let x = dx + 2; x <= dx + 9; x++) px(x, y, y === 203 ? greenD : G[y < 200 ? 1 : 2], 1);
+  px(dx + 2, 205, gold);
+  glow(Afar, (wx0 + wx1) / 2, 203, 36, 24, WINL, 0.5, { bands: 5, pow: 1.5, lm: LM, lmI: 0.6 });
+  glow(Afar, x0 + w / 2, 217, 34, 6, WINL, 0.45, { bands: 4, pow: 1.2, lm: LM, lmI: 0.3 });
+  STOOPS.push({ x: dx - 3, w: 18 });
 }
 // Sharesies: a stone bank with columns, an engraved name and a lit doorway
 function drawBank(h) {
@@ -1105,7 +1106,7 @@ function drawBank(h) {
   for (let x = x0; x < x0 + w; x++) { px(x, 184, stoneL); px(x, 190, stoneD); }
   sign('BANK', x0 + w / 2, 185, C('#e2c070'), 1);
   // tall lit windows between the columns, and the big door in the middle
-  const cols = [x0 + 5, x0 + 19, x0 + 39, x0 + 53];
+  const cx = x0 + Math.floor(w / 2), cols = [x0 + 3, cx - 10, cx + 7, x0 + w - 7];
   const G = LIT.gold;
   const win = (wx0, wx1) => {
     for (let y = 194; y <= 207; y++) for (let x = wx0; x <= wx1; x++) {
@@ -1114,13 +1115,13 @@ function drawBank(h) {
     }
     glow(Afar, (wx0 + wx1) / 2, 201, 9, 9, WINL, 0.2, { bands: 3, lm: LM, lmI: 0.3 });
   };
-  win(x0 + 11, x0 + 16); win(x0 + 45, x0 + 50);
+  win(x0 + 8, cx - 11); win(cx + 11, x0 + w - 9);
   // door with a fanlight
-  rect(x0 + 25, 193, 12, 18, C('#1c1612'));
-  for (let y = 196; y <= 210; y++) for (let x = x0 + 26; x <= x0 + 35; x++) px(x, y, x === x0 + 30 || x === x0 + 31 ? C('#2a1e14') : C('#5a3c22'));
-  for (let dy = 0; dy <= 2; dy++) for (let x = x0 + 26 + dy; x <= x0 + 35 - dy; x++) px(x, 195 - dy, G[2 - Math.min(dy, 1)], 1);
-  px(x0 + 29, 204, C('#d0a858')); px(x0 + 32, 204, C('#d0a858'));
-  glow(Afar, x0 + 31, 200, 14, 14, WINL, 0.3, { bands: 3, lm: LM, lmI: 0.4 });
+  rect(cx - 6, 193, 12, 18, C('#1c1612'));
+  for (let y = 196; y <= 210; y++) for (let x = cx - 5; x <= cx + 4; x++) px(x, y, x === cx - 1 || x === cx ? C('#2a1e14') : C('#5a3c22'));
+  for (let dy = 0; dy <= 2; dy++) for (let x = cx - 5 + dy; x <= cx + 4 - dy; x++) px(x, 195 - dy, G[2 - Math.min(dy, 1)], 1);
+  px(cx - 2, 204, C('#d0a858')); px(cx + 1, 204, C('#d0a858'));
+  glow(Afar, cx, 200, 14, 14, WINL, 0.3, { bands: 3, lm: LM, lmI: 0.4 });
   // columns with capitals and bases
   for (const cx of cols) {
     rect(cx - 1, 191, 6, 2, stoneL); rect(cx - 1, 209, 6, 2, stone);
@@ -1137,9 +1138,9 @@ function drawBank(h) {
 const BX0 = 436, BX1 = 564, BC = 500, BRA = 34, BRB = 19;
 const deckY = x => (x <= BX0 || x >= BX1) ? ST : ST - 10 * Math.sin(Math.PI * (x - BX0) / (BX1 - BX0));
 const feetY = x => Math.round(deckY(x)) + 5;
-const FAR_LAMPS = [118, 220, 354, 580];
+const FAR_LAMPS = [118, 220, 334, 594];
 const FAULTY_LAMP = 118;
-const FAR_TREES = [62, 300, 408, 616];
+const FAR_TREES = [62, 296, 420];
 const FAR_BIKES = [[128, 1], [312, -1], [336, 1], [592, -1]];
 const BULBS = [];
 
@@ -1222,12 +1223,11 @@ function drawFarLamp(x) {
   const post = C('#161c22'), postL = C('#2a3440');
   for (let y = 186; y <= 221; y++) px(x, y, y % 11 === 0 ? postL : post);
   rect(x - 1, 219, 3, 3, post); px(x + 1, 219, postL);
-  rect(x - 2, 188, 5, 1, post);
   const off = x === FAULTY_LAMP;
   const glass = off ? C('#4a3a3a') : C('#ffe9b0');
-  for (let y = 181; y <= 185; y++) { px(x - 1, y, y === 185 ? post : C('#2a2a30')); px(x, y, glass, 1); px(x + 1, y, y === 185 ? post : C('#2a2a30')); }
-  px(x - 1, 182, off ? glass : C('#ffc870'), 1); px(x + 1, 183, off ? glass : C('#ffc870'), 1);
-  rect(x - 2, 180, 5, 1, post); px(x, 179, post);
+  // lantern: a lit box with a sloped roof (no crossbar or finial, so it never reads as a cross)
+  for (let y = 181; y <= 185; y++) for (let dx = -1; dx <= 1; dx++) px(x + dx, y, y === 185 ? post : dx ? (off ? glass : C('#ffc870')) : glass, y < 185 ? 1 : 0);
+  rect(x - 2, 180, 5, 1, post); rect(x - 1, 179, 3, 1, post);
   if (off) {
     DYN.push({
       s: tmpSprite(true, A => { const a = (183 * W + x) * 3; for (let y = 181; y <= 184; y++) { const b = (y * W + x) * 3; A[b] = 180; A[b + 1] = 175; A[b + 2] = 120; } void a; }),
