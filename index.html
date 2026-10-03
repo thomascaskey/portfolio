@@ -1,0 +1,2803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Amsterdam Autumn Rain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; height: 100%; background: #05060c; overflow: hidden; }
+  canvas { position: fixed; left: 0; top: 0; display: block; }
+  body.hot { cursor: pointer; }
+  body.idle { cursor: none; }
+  #toast {
+    position: fixed; left: 50%; top: 24px; transform: translateX(-50%);
+    font: 13px/1.4 system-ui, sans-serif; color: #f2e2c4; background: rgba(8, 10, 24, .72);
+    padding: 6px 14px; border-radius: 6px; letter-spacing: .04em; white-space: nowrap;
+    opacity: 0; transition: opacity .4s; pointer-events: none;
+  }
+  #toast.show { opacity: 1; }
+  #hint {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    font: 13px/1.4 system-ui, sans-serif; color: #cfd6f0; background: rgba(8, 10, 24, .72);
+    padding: 8px 14px; border-radius: 6px; letter-spacing: .02em; white-space: nowrap;
+    opacity: 0; transition: opacity .6s; pointer-events: none;
+  }
+  #hint.show { opacity: 1; }
+
+  /* ---------- portfolio: house label + project card ---------- */
+  :root {
+    --pf-ink: #0b0e20; --pf-ink2: #121738; --pf-line: #3d4579; --pf-moon: #9aa4c4;
+    --pf-text: #ece6f6; --pf-muted: #9aa0c4; --pf-amber: #f0a04a; --pf-amber-hi: #ffc36a;
+    --pf-pixel: 'Pixelify Sans', ui-monospace, 'SF Mono', Menlo, monospace;
+    --pf-acc: #f0a04a;
+  }
+  #pf-tag {
+    position: fixed; left: 0; top: 0; transform: translate(-50%, -100%);
+    font: 600 13px/1 var(--pf-pixel); color: #fff2c4; letter-spacing: .04em; white-space: nowrap;
+    background: rgba(8, 10, 24, .86); padding: 7px 10px 6px; pointer-events: none;
+    box-shadow: 0 0 0 2px var(--pf-line), 0 0 0 4px rgba(8, 10, 24, .86);
+    opacity: 0; transition: opacity .15s steps(3);
+  }
+  #pf-tag.show { opacity: 1; }
+  #pf-tag::after {
+    content: ''; position: absolute; left: 50%; bottom: -8px; width: 4px; height: 4px; margin-left: -2px;
+    background: var(--pf-line); box-shadow: 0 -2px 0 rgba(8, 10, 24, .86);
+  }
+  #pf-tag b { color: var(--pf-amber-hi); font-weight: 600; margin-right: 6px; }
+
+  .pf { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 24px; cursor: auto; }
+  .pf[hidden] { display: none; }
+  .pf-scrim { position: absolute; inset: 0; background: rgba(4, 5, 12, .62); animation: pf-fade .25s steps(4) both; }
+  .pf-frame {
+    position: relative; width: min(920px, 100%); max-height: calc(100dvh - 48px); display: flex;
+    filter: drop-shadow(2px 0 0 var(--pf-line)) drop-shadow(-2px 0 0 var(--pf-line)) drop-shadow(0 2px 0 var(--pf-line)) drop-shadow(0 -2px 0 var(--pf-line))
+            drop-shadow(0 24px 40px rgba(0, 0, 0, .55));
+    animation: pf-rise .32s steps(6) both;
+  }
+  .pf-card {
+    flex: 1; min-width: 0; display: grid; grid-template-columns: 300px 1fr; overflow: hidden;
+    background: linear-gradient(180deg, var(--pf-ink2), var(--pf-ink) 60%);
+    color: var(--pf-text); font: 15px/1.55 system-ui, -apple-system, sans-serif;
+    clip-path: polygon(0 8px, 4px 8px, 4px 4px, 8px 4px, 8px 0, calc(100% - 8px) 0, calc(100% - 8px) 4px, calc(100% - 4px) 4px, calc(100% - 4px) 8px, 100% 8px,
+      100% calc(100% - 8px), calc(100% - 4px) calc(100% - 8px), calc(100% - 4px) calc(100% - 4px), calc(100% - 8px) calc(100% - 4px), calc(100% - 8px) 100%,
+      8px 100%, 8px calc(100% - 4px), 4px calc(100% - 4px), 4px calc(100% - 8px), 0 calc(100% - 8px));
+  }
+  @keyframes pf-fade { from { opacity: 0; } }
+  @keyframes pf-rise { from { opacity: 0; transform: translateY(28px); } }
+  @media (prefers-reduced-motion: reduce) { .pf-scrim, .pf-frame, .pf-scene::before { animation: none; } }
+
+  /* left: the house itself, standing in its own little rainy night */
+  .pf-card:focus { outline: none; }
+  .pf-scene {
+    position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+    min-height: 0; padding: 56px 20px 0; overflow: hidden; border-right: 2px solid var(--pf-line);
+    background:
+      radial-gradient(60% 22% at 50% 100%, color-mix(in srgb, var(--pf-acc) 38%, transparent), transparent 70%),
+      linear-gradient(180deg, #060918 0%, #0d122d 30%, #181e44 60%, #282753 85%, #302a58 100%);
+  }
+  .pf-scene::before {   /* rain */
+    content: ''; position: absolute; inset: -40px 0 0; pointer-events: none; opacity: .5;
+    background-image:
+      repeating-linear-gradient(100deg, transparent 0 22px, rgba(160, 175, 220, .22) 22px 23px, transparent 23px 41px),
+      repeating-linear-gradient(98deg, transparent 0 31px, rgba(160, 175, 220, .14) 31px 32px, transparent 32px 57px);
+    background-size: 100% 18px, 100% 26px;
+    animation: pf-rain .5s steps(4) infinite;
+  }
+  @keyframes pf-rain { to { background-position: -4px 18px, -6px 26px; } }
+  .pf-moon { position: absolute; top: 22px; right: 26px; width: 12px; height: 12px; background: #e4eaff;
+    box-shadow: 0 0 0 2px #b8c2e8 inset, 0 0 24px 6px rgba(120, 140, 220, .25); }
+  .pf-house { position: relative; display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+  .pf-street { position: relative; align-self: stretch; height: 18px; margin: 0 -20px;
+    background: repeating-linear-gradient(90deg, #20253a 0 6px, #10121d 6px 8px), #1a1e30;
+    box-shadow: inset 0 2px 0 #3c4260, inset 0 4px 0 #121420; }
+  .pf-plaque {
+    position: absolute; left: 16px; top: 16px; font: 600 13px/1 var(--pf-pixel); letter-spacing: .06em;
+    color: #2a1810; background: var(--pf-acc); padding: 6px 8px 5px;
+    box-shadow: 0 0 0 2px #2a1810, 2px 2px 0 2px rgba(0, 0, 0, .4);
+  }
+
+  /* right: the project */
+  .pf-body { min-height: 0; overflow-y: auto; padding: 32px 36px 24px; scrollbar-color: var(--pf-line) transparent; }
+  .pf-eyebrow { margin: 0 0 6px; font: 13px/1.2 var(--pf-pixel); letter-spacing: .08em; text-transform: uppercase; color: var(--pf-acc); }
+  .pf-title { margin: 0; font: 600 34px/1.1 var(--pf-pixel); letter-spacing: .01em; color: #fff4dc; text-wrap: balance; }
+  .pf-tagline { margin: 10px 0 0; font-size: 17px; color: #cfd6f0; max-width: 46ch; }
+  .pf-shots { display: flex; gap: 14px; margin: 24px 0 22px; }
+  .pf-phone {
+    flex: 0 1 110px; aspect-ratio: 9 / 19.5; border-radius: 18px; padding: 5px; background: #1b1d2a;
+    box-shadow: inset 0 0 0 1px #3a3e56, 0 10px 24px rgba(0, 0, 0, .35);
+  }
+  .pf-screen {
+    position: relative; height: 100%; border-radius: 14px; overflow: hidden; padding: 22px 9px 9px;
+    display: flex; flex-direction: column; gap: 6px;
+    background: linear-gradient(170deg, color-mix(in srgb, var(--pf-acc) 30%, #141832), #0e1126 70%);
+  }
+  .pf-screen::before { content: ''; position: absolute; top: 6px; left: 50%; width: 30%; height: 8px; margin-left: -15%; border-radius: 6px; background: #05060c; }
+  .pf-screen i { display: block; height: 7px; border-radius: 4px; background: rgba(236, 230, 246, .16); }
+  .pf-screen i.h { height: 11px; width: 70%; background: rgba(236, 230, 246, .34); }
+  .pf-screen i.c { height: auto; flex: 1; max-height: 64px; border-radius: 8px; background: color-mix(in srgb, var(--pf-acc) 45%, transparent); }
+  .pf-screen i.s { width: 55%; }
+  .pf-screen i.t { margin-top: auto; height: 14px; border-radius: 7px; background: rgba(236, 230, 246, .1); }
+  .pf-summary { margin: 0 0 20px; color: #c2c8e4; max-width: 60ch; }
+  .pf-meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 20px; margin: 0 0 22px; padding: 16px 0; border-block: 2px dashed #262c52; }
+  .pf-meta dt { font: 12px/1.2 var(--pf-pixel); letter-spacing: .08em; text-transform: uppercase; color: var(--pf-muted); margin-bottom: 4px; }
+  .pf-meta dd { margin: 0; color: var(--pf-text); }
+  .pf-meta .wide { grid-column: 1 / -1; }
+  .pf-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pf-chips span { font: 13px/1 var(--pf-pixel); padding: 5px 7px 4px; color: #dfe4f8; background: #1c2246; box-shadow: inset 0 0 0 1px #343c6e; }
+  .pf-links { display: flex; flex-wrap: wrap; gap: 10px; }
+  .pf-btn {
+    font: 600 14px/1 var(--pf-pixel); letter-spacing: .04em; text-decoration: none; padding: 11px 14px 10px; cursor: pointer;
+    color: #cfd6f0; background: transparent; box-shadow: inset 0 0 0 2px var(--pf-line);
+    transition: transform .1s steps(2), background .1s steps(2);
+  }
+  .pf-btn:hover { background: #1c2246; transform: translateY(-2px); }
+  .pf-btn.primary { color: #2a1810; background: var(--pf-acc); box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .25); }
+  .pf-btn.primary:hover { background: color-mix(in srgb, var(--pf-acc) 80%, #fff); }
+  .pf-btn:focus-visible, .pf-close:focus-visible, .pf-nav button:focus-visible { outline: 2px solid var(--pf-amber-hi); outline-offset: 2px; }
+  .pf-note { margin: 14px 0 0; font-size: 12px; color: #6c7296; }
+
+  .pf-close {
+    position: absolute; top: 14px; right: 14px; z-index: 2; width: 36px; height: 36px; border: 0; padding: 0; cursor: pointer;
+    font: 600 20px/1 var(--pf-pixel); color: #cfd6f0; background: #161b3e; box-shadow: inset 0 0 0 2px var(--pf-line);
+  }
+  .pf-close:hover { color: #fff4dc; background: #232a58; }
+  .pf-nav {
+    grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 12px 16px; border-top: 2px solid var(--pf-line); background: #090c1c;
+  }
+  .pf-nav button {
+    border: 0; background: none; cursor: pointer; padding: 6px 8px; font: 14px/1 var(--pf-pixel); letter-spacing: .04em; color: var(--pf-muted);
+  }
+  .pf-nav button:hover { color: var(--pf-amber-hi); }
+  .pf-dots { display: flex; gap: 6px; }
+  .pf-dots button { width: 8px; height: 8px; padding: 0; background: #2a3060; }
+  .pf-dots button[aria-current="true"] { background: var(--pf-acc); box-shadow: 0 0 0 2px rgba(255, 195, 106, .25); }
+
+  @media (max-width: 760px) {
+    .pf { padding: 12px; align-items: end; }
+    .pf-frame { max-height: calc(100dvh - 24px); }
+    .pf-card { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr) auto; }
+    .pf-scene { padding-top: 44px; border-right: 0; border-bottom: 2px solid var(--pf-line); max-height: 230px; }
+    .pf-body { padding: 22px 20px 18px; }
+    .pf-title { font-size: 27px; }
+    .pf-tagline { font-size: 16px; }
+    .pf-shots { gap: 10px; }
+    .pf-meta { grid-template-columns: 1fr; }
+    .pf-nav .lbl { display: none; }
+  }
+  /* about me (houseboat): wide banner with the boat on the canal, then the story */
+  .pf-body, .pf-water, #pf-work, .pf[data-mode="about"] .pf-street, .pf:not([data-mode="project"]) .pf-dots { display: none; }
+  .pf[data-mode="project"] .pf-project, .pf[data-mode="about"] .pf-about, .pf[data-mode="personal"] .pf-personal, .pf[data-mode="contact"] .pf-contact { display: block; }
+  .pf:not([data-mode="project"]) .pf-nav .lbl { display: inline; }
+  .pf:not([data-mode="project"]) #pf-work { display: block; color: var(--pf-acc); font-weight: 600; }
+  .pf[data-mode="personal"] .pf-house { margin-bottom: -4px; }
+  .pf[data-mode="contact"] .pf-street { background: repeating-linear-gradient(90deg, #1b2043 0 9px, #12162e 9px 11px), #1b2043; height: 24px; box-shadow: inset 0 2px 0 #2a2d5a; }
+  .pf-contact-list { list-style: none; margin: 26px 0 24px; padding: 0; border-top: 2px dashed #262c52; }
+  .pf-contact-list li { display: grid; grid-template-columns: 110px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 2px dashed #262c52; }
+  .pf-contact-list .key { font: 12px/1.2 var(--pf-pixel); letter-spacing: .08em; text-transform: uppercase; color: var(--pf-muted); }
+  .pf-contact-list .val { color: #fff4dc; font-size: 16px; overflow-wrap: anywhere; text-decoration: none; }
+  .pf-contact-list a.val:hover { color: var(--pf-amber-hi); text-decoration: underline; text-underline-offset: 3px; }
+  .pf-contact-list .val.todo { color: #6c7296; font-style: italic; }
+  .pf-copy { border: 0; cursor: pointer; padding: 6px 9px 5px; font: 13px/1 var(--pf-pixel); color: #cfd6f0; background: #1c2246; box-shadow: inset 0 0 0 1px #343c6e; }
+  .pf-copy:hover { color: #fff4dc; background: #232a58; }
+  @media (max-width: 760px) { .pf-contact-list li { grid-template-columns: 1fr auto; } .pf-contact-list .key { grid-column: 1 / -1; } }
+  .pf-photos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 24px 0 22px; }
+  .pf-photo { margin: 0; padding: 8px 8px 10px; background: #e9e2d0; box-shadow: 0 10px 22px rgba(0, 0, 0, .35); }
+  .pf-photo:nth-child(1) { transform: rotate(-2deg); } .pf-photo:nth-child(3) { transform: rotate(1.5deg); }
+  .pf-photo-img { aspect-ratio: 1; overflow: hidden;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--pf-acc) 40%, #1c2246), #0e1126); }
+  .pf-photo-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .pf-photo figcaption { margin-top: 8px; font: 13px/1.2 var(--pf-pixel); color: #3a3048; text-align: center; }
+  .pf[data-mode="about"] .pf-card { grid-template-columns: 1fr; grid-template-rows: 250px minmax(0, 1fr) auto; }
+  .pf[data-mode="about"] .pf-scene { border-right: 0; border-bottom: 2px solid var(--pf-line); padding: 30px 20px 0; }
+  .pf[data-mode="about"] .pf-water { display: block; position: relative; align-self: stretch; height: 22px; margin: -6px -20px 0;
+    background:
+      repeating-linear-gradient(90deg, transparent 0 14px, color-mix(in srgb, var(--pf-acc) 55%, transparent) 14px 20px, transparent 20px 37px) 0 6px / 100% 2px no-repeat,
+      repeating-linear-gradient(90deg, transparent 0 23px, rgba(160, 175, 220, .25) 23px 31px, transparent 31px 52px) 9px 13px / 100% 2px no-repeat,
+      linear-gradient(180deg, #141a3a, #0b0f24); }
+  .pf[data-mode="about"] .pf-nav .lbl { display: inline; }
+  .pf-about-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 28px; margin: 22px 0 6px; }
+  .pf-bio p { margin: 0 0 12px; color: #c2c8e4; }
+  .pf-facts { grid-template-columns: 1fr; gap: 12px; align-self: start; margin: 0; padding: 14px 0; }
+  .pf-h3 { margin: 18px 0 10px; font: 13px/1.2 var(--pf-pixel); letter-spacing: .08em; text-transform: uppercase; color: var(--pf-muted); }
+  .pf-timeline { list-style: none; margin: 0 0 24px; padding: 0 0 0 16px; border-left: 2px dashed #262c52; }
+  .pf-timeline li { position: relative; padding: 0 0 14px; display: grid; gap: 2px; }
+  .pf-timeline li::before { content: ''; position: absolute; left: -21px; top: 6px; width: 8px; height: 8px; background: var(--pf-acc); }
+  .pf-timeline .when { font: 12px/1.2 var(--pf-pixel); letter-spacing: .06em; color: var(--pf-acc); }
+  .pf-timeline b { font-weight: 600; color: #fff4dc; }
+  .pf-timeline .where { color: var(--pf-muted); }
+  @media (max-width: 760px) {
+    .pf[data-mode="about"] .pf-card { grid-template-rows: 150px minmax(0, 1fr) auto; }
+    .pf[data-mode="about"] .pf-scene { max-height: none; padding-top: 24px; }
+    .pf-about-grid { grid-template-columns: 1fr; gap: 6px; }
+    .pf[data-mode="personal"] .pf-scene, .pf[data-mode="contact"] .pf-scene { height: 200px; }
+    .pf-nav { padding: 10px 6px; gap: 4px; }
+    .pf-nav button { white-space: nowrap; font-size: 13px; padding: 6px 4px; }
+  }
+  body.idle .pf, body.idle .pf * { cursor: auto; }
+  body.idle .pf a, body.idle .pf button { cursor: pointer; }
+</style>
+</head>
+<body>
+<canvas id="view"></canvas>
+<div id="toast"></div>
+<div id="hint">Click a house to open its project · Shift-click windows · L lights · R rain · F fullscreen</div>
+<div id="pf-tag"></div>
+<div id="pf" class="pf" hidden role="dialog" aria-modal="true" aria-labelledby="pf-title">
+  <div class="pf-scrim" data-close></div>
+  <div class="pf-frame">
+    <article class="pf-card" tabindex="-1">
+      <button class="pf-close" type="button" data-close aria-label="Close project">&times;</button>
+      <div class="pf-scene" aria-hidden="true">
+        <div class="pf-moon"></div>
+        <div class="pf-plaque" id="pf-no-wrap">No. 01</div>
+        <canvas class="pf-house" id="pf-house"></canvas>
+        <div class="pf-street"></div>
+        <div class="pf-water"></div>
+      </div>
+      <div class="pf-body pf-about">
+        <p class="pf-eyebrow">About me · Professional · <span id="pf-a-role"></span></p>
+        <h2 class="pf-title" id="pf-a-name"></h2>
+        <p class="pf-tagline" id="pf-a-tagline"></p>
+        <div class="pf-about-grid">
+          <div class="pf-bio" id="pf-a-bio"></div>
+          <dl class="pf-meta pf-facts" id="pf-a-facts"></dl>
+        </div>
+        <h3 class="pf-h3">What I work with</h3>
+        <div class="pf-chips" id="pf-a-skills"></div>
+        <h3 class="pf-h3">Experience</h3>
+        <ol class="pf-timeline" id="pf-a-exp"></ol>
+        <div class="pf-links" id="pf-a-links"></div>
+        <p class="pf-note" id="pf-a-note">Placeholder content. Edit ABOUT at the top of the page.</p>
+      </div>
+      <div class="pf-body pf-personal">
+        <p class="pf-eyebrow">About me · Personal</p>
+        <h2 class="pf-title" id="pf-p-title"></h2>
+        <p class="pf-tagline" id="pf-p-tagline"></p>
+        <div class="pf-photos" id="pf-p-photos"></div>
+        <div class="pf-bio" id="pf-p-bio"></div>
+        <dl class="pf-meta" id="pf-p-facts"></dl>
+        <h3 class="pf-h3">Things I love</h3>
+        <div class="pf-chips" id="pf-p-interests"></div>
+        <div class="pf-links" id="pf-p-links"></div>
+        <p class="pf-note" id="pf-p-note">Placeholder content. Edit PERSONAL at the top of the page.</p>
+      </div>
+      <div class="pf-body pf-contact">
+        <p class="pf-eyebrow">Contact</p>
+        <h2 class="pf-title" id="pf-c-title"></h2>
+        <p class="pf-tagline" id="pf-c-tagline"></p>
+        <ul class="pf-contact-list" id="pf-c-rows"></ul>
+        <div class="pf-links" id="pf-c-links"></div>
+        <p class="pf-note" id="pf-c-note"></p>
+      </div>
+      <div class="pf-body pf-project">
+        <p class="pf-eyebrow"><span id="pf-kind"></span> · <span id="pf-year"></span></p>
+        <h2 class="pf-title" id="pf-title"></h2>
+        <p class="pf-tagline" id="pf-tagline"></p>
+        <div class="pf-shots" aria-label="Screenshots (placeholder)">
+          <div class="pf-phone"><div class="pf-screen"><i class="h"></i><i class="s"></i><i class="c"></i><i></i><i class="s"></i><i class="t"></i></div></div>
+          <div class="pf-phone"><div class="pf-screen"><i class="h"></i><i class="c"></i><i class="c"></i><i class="s"></i><i class="t"></i></div></div>
+          <div class="pf-phone"><div class="pf-screen"><i class="h"></i><i></i><i class="s"></i><i></i><i class="c"></i><i class="t"></i></div></div>
+        </div>
+        <p class="pf-summary" id="pf-summary"></p>
+        <dl class="pf-meta">
+          <div><dt>Role</dt><dd id="pf-role"></dd></div>
+          <div><dt>Platform</dt><dd id="pf-platform"></dd></div>
+          <div class="wide"><dt>Built with</dt><dd class="pf-chips" id="pf-stack"></dd></div>
+        </dl>
+        <div class="pf-links" id="pf-links"></div>
+        <p class="pf-note" id="pf-note">Placeholder content. Edit the PORTFOLIO list at the top of the page.</p>
+      </div>
+      <nav class="pf-nav" aria-label="Projects">
+        <button type="button" id="pf-prev">&larr; <span class="lbl" id="pf-prev-lbl"></span></button>
+        <div class="pf-dots" id="pf-dots"></div>
+        <button type="button" id="pf-work">See my work</button>
+        <button type="button" id="pf-next"><span class="lbl" id="pf-next-lbl"></span> &rarr;</button>
+      </nav>
+    </article>
+  </div>
+</div>
+<script>
+/* ============================================================
+   PORTFOLIO — one entry per canal house, left to right.
+   Anything left out falls back to placeholder text.
+   links: [label, url] pairs; the first one is the main button.
+   ============================================================ */
+const PLACEHOLDER = { kind: 'Coming soon', year: 'Placeholder' };
+const PORTFOLIO = [
+  { ...PLACEHOLDER, accent: '#e8603a' },
+  { ...PLACEHOLDER, accent: '#f8d25a' },
+  { ...PLACEHOLDER, accent: '#8a9ac4' },
+  {
+    title: 'RNZ', kind: 'Public radio app', year: 'Alphero', accent: '#f0a04a',
+    tagline: "Radio New Zealand's live stations, news and podcasts in one clean, ad-free app.",
+    summary: 'The RNZ app streams RNZ National, Concert, Pacific and Parliament live, alongside breaking news, on-demand programmes and podcasts. Listeners can bookmark, build a play queue and download episodes to listen offline, with nothing getting in the way of the content.',
+    role: 'iOS development at Alphero',
+    platform: 'iPhone, iPad and Android',
+    stack: ['Swift', 'Audio streaming', 'Offline downloads', 'News feed'],
+    links: [['App Store', 'https://apps.apple.com/nz/app/radio-new-zealand/id407890305'], ['About the app', 'https://www.rnz.co.nz/listen/app']],
+  },
+  {
+    title: '2degrees', kind: 'Telco self-service app', year: 'Alphero', accent: '#ffc36a',
+    tagline: 'Letting hundreds of thousands of New Zealanders manage their mobile account themselves.',
+    summary: '2degrees wanted customers to sort out their own accounts instead of calling the contact centre. The app lets people check their balance and data, top up, buy add-ons and change plans, across many plan types and account structures, with playful illustrations and a Kiwi tone of voice. It smashed every KPI set for it, and won a Best Awards Gold, a Good Design award and a Webby Honouree.',
+    role: 'iOS development at Alphero',
+    platform: 'iOS and Android',
+    stack: ['Swift', 'Account management', 'In-app purchases', 'Animation'],
+    links: [['Case study', 'https://www.alphero.com/case-studies/2degrees-app-case-study']],
+  },
+  {
+    title: 'Goodnotes', kind: 'Education', year: '2023 to now', accent: '#d46a2e',
+    tagline: 'Building new features for the Goodnotes Education team, fully in SwiftUI.',
+    summary: 'Since moving to Amsterdam I have worked fully remote in the Education team at Goodnotes, owning and building new features end to end with developers, product and designers. Goodnotes is a large, complex, cross-platform codebase that people use for long stretches of time, so continuous releases stay high quality through strong testing and QA practices. I have also helped teammates bring AI workflows into their daily work while keeping the human touch.',
+    role: 'Lead Software Engineer',
+    platform: 'iPad, iPhone and Mac',
+    stack: ['Swift', 'SwiftUI', 'Testing and QA', 'Continuous releases', 'AI workflows'],
+    links: [['Goodnotes for Education', 'https://www.goodnotes.com/education']],
+  },
+  {
+    title: 'Sharesies', kind: 'Investing platform', year: '2021 to 2023', accent: '#7fbfa8',
+    tagline: 'Leading Sharesies from the start of its mobile journey to a scalable native platform.',
+    summary: 'I joined Sharesies at the beginning of its mobile journey and owned the iOS platform: building the team, setting the roadmap and choosing our practices. I worked closely with leadership to advocate for a considered shift towards mobile. Our principles of cohesion and simplicity shaped how the apps joined existing systems, and they were built in SwiftUI with an easy to understand, modular structure.',
+    role: 'Mobile Tech Lead',
+    platform: 'iOS',
+    stack: ['Swift', 'SwiftUI', 'Modular architecture', 'Roadmapping', 'Team building'],
+    links: [['Sharesies', 'https://www.sharesies.com']],
+  },
+  {
+    title: 'TVNZ+ and 1News', kind: 'Streaming and news', year: 'Alphero', accent: '#f79a3c',
+    tagline: "New Zealand's free-to-air broadcaster, live and on demand for over two million people.",
+    summary: 'TVNZ+ streams live and on-demand TV, and 1News delivers the news with layouts driven from the backend through modular, API-rendered components. Keeping more than ten third-party platforms and SDKs healthy, including Segment and Nielsen analytics and Split A/B testing, took steady proactive maintenance. The work won a Silver at the Best Awards.',
+    role: 'iOS development at Alphero',
+    platform: 'iOS, Apple TV, Android and web',
+    stack: ['Swift', 'Video streaming', 'tvOS', 'A/B testing', 'Analytics SDKs'],
+    links: [['Case study', 'https://www.alphero.com/case-studies/tvnz-case-study']],
+  },
+  {
+    title: 'Drive Go', kind: 'Learn-to-drive app', year: '2019', accent: '#d6a236',
+    tagline: "New Zealand's first learn-to-drive app, built to make roads safer.",
+    summary: 'Built for NZ Transport Agency Waka Kotahi with ACC and the Ministry of Education, Drive Go guides learner drivers along a road-shaped path with city or rural routes, playful award badges and Lottie animations. Lessons were reordered to put crash-prevention skills first, and the app includes machine-learning licence scanning. It won Gold at the Best Awards and a Good Design Gold.',
+    role: 'iOS development at Alphero',
+    platform: 'iOS and Android',
+    stack: ['Swift', 'Gamification', 'Lottie', 'ML licence scanning'],
+    links: [['Case study', 'https://www.alphero.com/case-studies/drive-go-app-case-study']],
+  },
+  { ...PLACEHOLDER, accent: '#b8c2e8' },
+  { ...PLACEHOLDER, accent: '#e8603a' },
+  { ...PLACEHOLDER, accent: '#fcc46a' },
+];
+
+/* CONTACT — the Westertoren. rows: [label, text, link]; a mailto: link gets a Copy button,
+   '' means plain text, '#' shows the row greyed out until you add the link. */
+const CONTACT = {
+  title: 'Get in touch',
+  tagline: "I'm based in Amsterdam and always happy to talk about iOS, building great mobile teams, or a project you have in mind.",
+  rows: [
+    ['Email', 'thomasdbcaskey@gmail.com', 'mailto:thomasdbcaskey@gmail.com'],
+    ['Location', 'Amsterdam, Netherlands', ''],
+    ['LinkedIn', 'Add your profile link', '#'],
+    ['GitHub', 'Add your profile link', '#'],
+  ],
+  note: 'References available on request.',
+};
+
+/* PERSONAL — the kiwi beside the houseboat, the personal side. Anything left out falls back to placeholder text.
+   photos: [image url, caption] pairs; leave the url empty for a placeholder frame. */
+const PERSONAL = {
+  // title: 'Away from Xcode',
+  // tagline: '...',
+  // bio: ['First paragraph', 'Second paragraph'],
+  // photos: [['photos/amsterdam.jpg', 'Home, Amsterdam'], ['', 'Caption']],
+  // facts: [['Home', 'Amsterdam, by way of New Zealand'], ['Weekends', '...']],
+  // interests: ['Cycling', 'Coffee'],
+  // links: [['Instagram', 'https://…']],
+};
+
+/* ABOUT — the houseboat, the professional side. Anything left out falls back to placeholder text. */
+const ABOUT = {
+  name: 'Thomas Caskey',
+  greeting: "Hi, I'm Thomas.",
+  role: 'Lead Software Engineer, iOS',
+  tagline: 'I build innovative, customer-driven, native-first apps, where quality lives in the code and in the experience.',
+  bio: [
+    "I'm a mobile developer with over ten years of experience, at my best working alongside product and design to solve real-world problems. I worked on some of Aotearoa New Zealand's most used apps at Alphero, led the mobile platform at Sharesies, and now build features for the Education team at Goodnotes from Amsterdam.",
+    'I care about creating a safe and open place to work, where diversity is advocated for and the culture supports both personal and professional growth.',
+  ],
+  facts: [['Based in', 'Amsterdam, Netherlands'], ['Currently', 'Lead Software Engineer at Goodnotes'], ['Experience', '10+ years building mobile apps'], ['Studied', 'BSc Computer Science, Victoria University of Wellington']],
+  skills: ['Swift', 'SwiftUI', 'Objective-C', 'MVVM and MVP', 'Concurrency', 'Reactive programming', 'Unit, UI and snapshot testing', 'CI/CD', 'Feature flags and A/B tests', 'Accessibility', 'AI workflows', 'Mobile architecture'],
+  experience: [
+    ['Nov 2023 to now', 'Lead Software Engineer', 'Goodnotes, Education'],
+    ['Sep 2021 to Sep 2023', 'Mobile Tech Lead', 'Sharesies'],
+    ['Nov 2012 to Sep 2021', 'Developer, then Tech Lead from 2020', 'Alphero'],
+  ],
+  links: [['Email me', 'mailto:thomasdbcaskey@gmail.com']],   // add more, e.g. ['LinkedIn', 'https://…'], ['GitHub', 'https://…']
+};
+</script>
+<script>
+'use strict';
+(() => {
+/* ============================================================
+   Amsterdam Autumn Rain — procedural pixel-art diorama.
+   The scene is drawn at 640x360 and scaled by whole pixels
+   (3x at 1080p). Every moving thing is a pure function of
+   time modulo LOOP seconds, so it repeats seamlessly forever.
+   ============================================================ */
+const W = 640, H = 360, N = W * H, LOOP = 60, TAU = Math.PI * 2;
+const WL = 230;   // canal waterline under the far quay
+const NQ = 297;   // near quay coping
+const GF = 184;   // top of the ground floors
+const ST = 214;   // facade base / far street
+
+/* ---------- hashing, noise, dithering ---------- */
+function hash(n) {
+  n = (n | 0) + 0x7ed55d16 | 0;
+  n = Math.imul(n ^ (n >>> 16), 0x85ebca6b);
+  n = Math.imul(n ^ (n >>> 13), 0xc2b2ae35);
+  return ((n ^ (n >>> 16)) >>> 0) / 4294967296;
+}
+const h2 = (a, b) => hash((Math.imul(a | 0, 374761393) + Math.imul(b | 0, 668265263)) | 0);
+const h3 = (a, b, c) => hash((Math.imul(a | 0, 374761393) + Math.imul(b | 0, 668265263) + Math.imul(c | 0, 1274126177)) | 0);
+function rng(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const B4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map(v => (v + 0.5) / 16);
+const bay = (x, y) => B4[((y & 3) << 2) | (x & 3)];
+function vnoise(x, y, seed = 0) {
+  const ix = Math.floor(x), iy = Math.floor(y), fx = x - ix, fy = y - iy;
+  const sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy);
+  const a = h3(ix, iy, seed), b = h3(ix + 1, iy, seed), c = h3(ix, iy + 1, seed), d = h3(ix + 1, iy + 1, seed);
+  return a + (b - a) * sx + (c - a) * sy + (a - b - c + d) * sx * sy;
+}
+// smooth noise in time that wraps exactly every LOOP seconds
+function tn(t, hz, seed) {
+  const n = Math.max(1, Math.round(hz * LOOP));
+  const u = t / LOOP * n;
+  let i = Math.floor(u);
+  const f = u - i;
+  i = ((i % n) + n) % n;
+  const a = h2(seed, i), b = h2(seed, (i + 1) % n), s = f * f * (3 - 2 * f);
+  return a + (b - a) * s;
+}
+const STAB = new Float32Array(4096);
+for (let i = 0; i < 4096; i++) STAB[i] = Math.sin(i / 4096 * TAU);
+const SIN = a => STAB[(a * 651.8986469 | 0) & 4095];
+
+/* ---------- colour helpers ---------- */
+const C = h => { const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
+const mix = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const sstep = (a, b, v) => { const t = clamp((v - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+
+const LAMP = C('#ffb65e'), WINL = C('#ff9c48'), BULB = C('#ffc070');
+const RAMPS = [
+  ['#1c1022', '#351828', '#5e2630', '#9a3f2e', '#d46a2e', '#f79a3c'],   // orange
+  ['#1a0e20', '#321426', '#561c2c', '#86282c', '#b83a2e', '#e8603a'],   // red
+  ['#1c1424', '#382630', '#664634', '#a07030', '#d6a236', '#f8d25a'],   // yellow
+  ['#181020', '#2c1c26', '#4a2e2e', '#704430', '#a0643a', '#cc8c48'],   // rust
+].map(r => r.map(C));
+const RIMS = ['#4c3a5e', '#48345a', '#555068', '#46405a'].map(C);
+const pickHue = r => r < 0.36 ? 0 : r < 0.6 ? 1 : r < 0.85 ? 2 : 3;
+
+/* ---------- static layers & painting ---------- */
+const newL = () => new Uint8ClampedArray(N * 4);
+const Lback = newL(), Lfront = newL(), Lboat = newL(), Lnear = newL();
+const Mback = new Uint8Array(N), Mfront = new Uint8Array(N), Mboat = new Uint8Array(N), Mnear = new Uint8Array(N);
+let CL = Lback, CM = Mback;
+const OWN = new Uint8Array(N);   // which canal house (index + 1) owns each back-layer pixel, for clicks and highlights
+let OWN_ID = 0;
+const KIWIM = new Uint8Array(N);   // the kiwi on the near quay (personal "about me")
+let KIWI_DRAW = false;
+const use = (L, M) => { CL = L; CM = M; };
+function px(x, y, c, nl) {
+  x = Math.floor(x); y = Math.floor(y);
+  if (x < 0 || y < 0 || x >= W || y >= H) return;
+  const p = y * W + x, i = p << 2;
+  CL[i] = c[0]; CL[i + 1] = c[1]; CL[i + 2] = c[2]; CL[i + 3] = 255;
+  if (CM) CM[p] = nl ? 1 : 0;
+  if (CL === Lback) OWN[p] = OWN_ID;
+  if (KIWI_DRAW) KIWIM[p] = 1;
+}
+function blend(x, y, c, a) {
+  x = Math.floor(x); y = Math.floor(y);
+  if (x < 0 || y < 0 || x >= W || y >= H) return;
+  const i = (y * W + x) << 2;
+  if (!CL[i + 3]) return;
+  CL[i] += (c[0] - CL[i]) * a; CL[i + 1] += (c[1] - CL[i + 1]) * a; CL[i + 2] += (c[2] - CL[i + 2]) * a;
+}
+function rect(x, y, w, h, c, nl) { for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) px(x + i, y + j, c, nl); }
+function line(x0, y0, x1, y1, c, nl) {
+  x0 = Math.round(x0); y0 = Math.round(y0); x1 = Math.round(x1); y1 = Math.round(y1);
+  const dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
+  let e = dx + dy;
+  for (;;) {
+    px(x0, y0, c, nl);
+    if (x0 === x1 && y0 === y1) break;
+    const e2 = 2 * e;
+    if (e2 >= dy) { e += dy; x0 += sx; }
+    if (e2 <= dx) { e += dx; y0 += sy; }
+  }
+}
+// tapered limb, shaded light on the upper-right, dark on the lower-left
+function limb(x0, y0, x1, y1, t0, t1, cols) {
+  const len = Math.hypot(x1 - x0, y1 - y0), steps = Math.max(1, Math.ceil(len * 1.5));
+  for (let s = 0; s <= steps; s++) {
+    const u = s / steps, x = x0 + (x1 - x0) * u, y = y0 + (y1 - y0) * u, r = (t0 + (t1 - t0) * u) / 2;
+    const R = Math.ceil(r);
+    for (let dy = -R; dy <= R; dy++) for (let dx = -R; dx <= R; dx++) {
+      if (dx * dx + dy * dy > r * r + 0.3) continue;
+      const e = (dx - dy) / (r + 0.5);
+      px(x + dx, y + dy, e > 0.55 ? cols[2] : e < -0.45 ? cols[0] : cols[1]);
+    }
+  }
+}
+
+/* ---------- light accumulation ---------- */
+const newA = () => new Float32Array(N * 3);
+const Afar = newA(), Anear = newA(), TMP = newA();
+const LM = new Float32Array(N);   // warm light seen by rain
+// banded, dithered radial glow (pixel-art halo)
+function glow(A, cx, cy, rx, ry, col, I, o = {}) {
+  const bands = o.bands ?? 5, pw = o.pow ?? 2, lm = o.lm, lmI = o.lmI ?? 1, mask = o.mask;
+  const x0 = Math.max(0, Math.floor(cx - rx)), x1 = Math.min(W - 1, Math.ceil(cx + rx));
+  const y0 = Math.max(0, Math.floor(cy - ry)), y1 = Math.min(H - 1, Math.ceil(cy + ry));
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+    const dx = (x + 0.5 - cx) / rx, dy = (y + 0.5 - cy) / ry, d = Math.sqrt(dx * dx + dy * dy);
+    if (d >= 1) continue;
+    let v = Math.pow(1 - d, pw);
+    if (bands) v = Math.floor(v * bands + bay(x, y)) / bands;
+    if (v <= 0) continue;
+    const p = y * W + x;
+    if (mask) { v *= mask(x, y, p); if (v <= 0) continue; }
+    if (A) { const i = p * 3; A[i] += col[0] * v * I; A[i + 1] += col[1] * v * I; A[i + 2] += col[2] * v * I; }
+    if (lm) lm[p] += v * I * lmI;
+  }
+}
+function applyA(L, M, A, gain = 1) {
+  for (let p = 0; p < N; p++) {
+    const i = p << 2;
+    if (!L[i + 3] || M[p]) continue;
+    const a = p * 3, r = A[a] * gain, g = A[a + 1] * gain, b = A[a + 2] * gain;
+    if (r + g + b < 0.5) continue;
+    L[i] += r * (0.55 + L[i] * 0.0035); L[i + 1] += g * (0.55 + L[i + 1] * 0.0035); L[i + 2] += b * (0.55 + L[i + 2] * 0.0035);
+  }
+}
+const lumA = (A, x, y) => {
+  x = clamp(Math.floor(x), 0, W - 1); y = clamp(Math.floor(y), 0, H - 1);
+  const a = (y * W + x) * 3;
+  return (A[a] * 0.3 + A[a + 1] * 0.55 + A[a + 2] * 0.15) / 255;
+};
+// dynamic light sprite: sparse list of pixels with an rgb contribution
+function sprite(A, emit) {
+  let n = 0;
+  for (let p = 0; p < N; p++) if (A[p * 3] + A[p * 3 + 1] + A[p * 3 + 2] > 0.5) n++;
+  const s = { n, emit, idx: new Int32Array(n), r: new Float32Array(n), g: new Float32Array(n), b: new Float32Array(n) };
+  let j = 0;
+  for (let p = 0; p < N; p++) {
+    const a = p * 3;
+    if (A[a] + A[a + 1] + A[a + 2] > 0.5) { s.idx[j] = p << 2; s.r[j] = A[a]; s.g[j] = A[a + 1]; s.b[j] = A[a + 2]; j++; }
+  }
+  return s;
+}
+function tmpSprite(emit, fill) { TMP.fill(0); fill(TMP); return sprite(TMP, emit); }
+const DYN = [];   // { s, k(t), stage }
+
+/* ============================================================
+   SKY — dithered gradient, moon, drifting cloud field
+   ============================================================ */
+const SKY_STOPS = [[0, '#060918'], [36, '#090d22'], [76, '#0d122d'], [116, '#121939'], [150, '#181e44'],
+  [180, '#1f224c'], [205, '#282753'], [232, '#302a58']].map(([y, h]) => [y, C(h)]);
+function skyBase(x, y) {
+  for (let k = 0; k < SKY_STOPS.length - 1; k++) {
+    const [y0, c0] = SKY_STOPS[k], [y1, c1] = SKY_STOPS[k + 1];
+    if (y < y1 || k === SKY_STOPS.length - 2) return bay(x, y) < (y - y0) / (y1 - y0) ? c1 : c0;
+  }
+}
+const MOON = { x: 566, y: 40, r: 7 };
+const CW = 1024, CH = 232, CLOUD_V = 3.2;
+const CT = new Float32Array(CW * CH);
+(function buildClouds() {
+  const R = rng(1234);
+  const oct = [[256, 72, 1], [128, 36, 0.5], [64, 18, 0.27], [32, 9, 0.14], [16, 5, 0.07]];
+  for (const [cx, cy, wgt] of oct) {
+    const gx = CW / cx, gy = Math.ceil(CH / cy) + 2, g = new Float32Array(gx * gy);
+    for (let i = 0; i < g.length; i++) g[i] = R();
+    for (let y = 0; y < CH; y++) {
+      const fy = y / cy, iy = Math.floor(fy), ty = fy - iy, sy = ty * ty * (3 - 2 * ty);
+      for (let x = 0; x < CW; x++) {
+        const fx = x / cx, ix = Math.floor(fx), tx = fx - ix, sx = tx * tx * (3 - 2 * tx);
+        const x0 = ix % gx, x1 = (ix + 1) % gx;
+        const a = g[iy * gx + x0], b = g[iy * gx + x1], c = g[(iy + 1) * gx + x0], d = g[(iy + 1) * gx + x1];
+        const top = a + (b - a) * sx, bot = c + (d - c) * sx;
+        CT[y * CW + x] += wgt * (top + (bot - top) * sy);
+      }
+    }
+  }
+  let m = 0; for (let i = 0; i < CT.length; i++) m += CT[i]; m /= CT.length;
+  let s = 0; for (let i = 0; i < CT.length; i++) s += (CT[i] - m) ** 2; s = Math.sqrt(s / CT.length);
+  for (let i = 0; i < CT.length; i++) CT[i] = (CT[i] - m) / s * 0.16 + 0.5;
+})();
+const CLOUD_THR = new Float32Array(CH), CCOL = new Float32Array(CH * 5 * 3);
+(function cloudPalette() {
+  const top = ['#172046', '#222a58', '#2e3668', '#3d4579'].map(C);
+  const bot = ['#2e2858', '#3a3264', '#463c70', '#54487c'].map(C);
+  for (let y = 0; y < CH; y++) {
+    CLOUD_THR[y] = 0.43 + 0.09 * sstep(30, 110, y) - 0.05 * sstep(140, 200, y);
+    const t = sstep(0, 220, y);
+    for (let l = 1; l <= 4; l++) {
+      const c = mix(top[l - 1], bot[l - 1], t), o = (y * 5 + l) * 3;
+      CCOL[o] = c[0]; CCOL[o + 1] = c[1]; CCOL[o + 2] = c[2];
+    }
+  }
+})();
+
+/* ---------- distant skyline, Westertoren, side canal ---------- */
+function drawSkyline() {
+  use(Lback, Mback);
+  const R = rng(9);
+  const cols = ['#141a38', '#171d3e', '#131836'].map(C);
+  const wins = ['#5a4038', '#7a5238', '#3a3048'].map(C);
+  let x = -10;
+  while (x < W) {
+    const w = 10 + Math.floor(R() * 20), top = 126 + Math.floor(R() * 38), gable = R() < 0.5;
+    const c = cols[Math.floor(R() * 3)];
+    for (let i = 0; i < w; i++) {
+      let t = top;
+      if (gable) { const hw = w / 2, d = Math.abs(i + 0.5 - hw); t = top - Math.floor(Math.max(0, hw - d) * 0.8); }
+      for (let y = t; y < ST; y++) px(x + i, y, c, 1);
+    }
+    if (R() < 0.35) rect(x + 2 + Math.floor(R() * (w - 5)), top - 5, 2, 5, c, 1);
+    for (let wy = top + 4; wy < 206; wy += 7)
+      for (let wx = x + 2; wx < x + w - 2; wx += 4) if (R() < 0.13) { const wc = wins[Math.floor(R() * 3)]; px(wx, wy, wc, 1); px(wx, wy + 1, wc, 1); }
+    x += w;
+  }
+}
+function drawTower() {   // a wide brick clock tower with a slate roof (the contact card)
+  use(Lback, Mback);
+  const TX = 500, haze = C('#2a2d5a');
+  const hz = (h, k = 0.3) => mix(C(h), haze, k);
+  const brick = hz('#4a2f3a'), brickL = hz('#6c4642'), brickD = hz('#2e1f2e');
+  const stone = hz('#5c5570'), stoneL = hz('#7c7288'), stoneD = hz('#3a3550');
+  const slate = hz('#2c3256', 0.2), slateL = hz('#40497a', 0.2), slateD = hz('#1c2040', 0.2), dark = hz('#141222', 0.2);
+  const band = (y, x0, x1, c) => { for (let x = x0; x <= x1; x++) px(x, y, c, 1); };
+  const body = (y0, y1, hw, cD, c, cL) => {
+    for (let y = y0; y <= y1; y++) for (let x = TX - hw; x <= TX + hw - 1; x++) {
+      const u = x - (TX - hw);
+      px(x, y, u < 3 ? cD : u >= 2 * hw - 3 ? cL : c, 1);
+    }
+  };
+  const slit = (x, y0, y1) => { for (let y = y0; y <= y1; y++) { px(x, y, dark, 1); px(x + 1, y, dark, 1); } px(x, y0 - 1, dark, 1); };
+  // brick shaft, floodlit warmer toward the bottom
+  for (let y = 118; y < ST; y++) for (let x = TX - 14; x <= TX + 13; x++) {
+    const u = x - (TX - 14);
+    let c = u < 4 ? brickD : u > 23 ? brickL : brick;
+    if (y % 3 === 0 && u >= 4 && u <= 23 && bay(x, y) < 0.5) c = brickD;
+    px(x, y, mix(c, C('#8a5a48'), sstep(120, 214, y) * 0.25), 1);
+  }
+  for (const wy of [132, 162]) { slit(TX - 7, wy, wy + 16); slit(TX + 5, wy, wy + 16); }
+  band(117, TX - 15, TX + 14, stoneL); band(116, TX - 15, TX + 14, stone);
+  for (let x = TX - 15; x <= TX + 14; x++) if (x % 2 === 0) px(x, 115, stoneD, 1);
+  band(114, TX - 15, TX + 14, stoneL);
+  // clock stage with a big lit face
+  body(90, 113, 12, stoneD, stone, stoneL);
+  for (let dy = -6; dy <= 6; dy++) for (let dx = -6; dx <= 6; dx++) {
+    const d = Math.hypot(dx + 0.5, dy + 0.5);
+    if (d < 6.2) px(TX + dx, 100 + dy, d > 5 ? stoneL : C('#f4e2b0'), 1);
+  }
+  for (const [dx, dy] of [[0, -4], [0, 4], [-4, 0], [4, 0]]) px(TX + dx, 100 + dy, C('#b8a070'), 1);   // hour marks
+  for (let k = 1; k <= 3; k++) px(TX, 100 - k, dark, 1);                                          // hands
+  for (let k = 1; k <= 2; k++) px(TX + k, 100 + k, dark, 1);
+  px(TX, 100, dark, 1);
+  glow(Afar, TX + 0.5, 100.5, 16, 16, C('#ffd89a'), 0.4, { bands: 3, lm: LM, lmI: 0.3 });
+  band(89, TX - 13, TX + 12, stoneL); band(88, TX - 13, TX + 12, stoneD); band(87, TX - 13, TX + 12, stoneL);
+  // belfry with paired openings
+  body(70, 86, 11, stoneD, hz('#6a6078'), hz('#8a8098'));
+  for (const ox of [TX - 6, TX - 3, TX + 1, TX + 4]) slit(ox, 74, 84);
+  band(69, TX - 12, TX + 11, stoneL); band(68, TX - 12, TX + 11, stoneD); band(67, TX - 12, TX + 11, stoneL);
+  // slate pyramid roof with a plain ball finial
+  for (let y = 50; y <= 66; y++) {
+    const hw = Math.round(1 + (y - 50) * 12 / 16);
+    for (let x = TX - hw; x <= TX + hw - 1; x++) px(x, y, x >= TX + hw - 2 ? slateL : x <= TX - hw + 1 ? slateD : (y % 3 === 0 && bay(x, y) < 0.4 ? slateD : slate), 1);
+  }
+  px(TX - 1, 49, slateL, 1); px(TX, 49, slateL, 1);   // small knob on the apex
+}
+function drawSideCanal() {
+  use(Lback, Mback);
+  const R = rng(31);
+  const cols = ['#1b2043', '#1e2448', '#191e3e', '#20264a'].map(C);
+  const wins = ['#8a5a3a', '#a8703f', '#6a4636'].map(C), dark = C('#12162e');
+  let x = 448;
+  const ws = [17, 20, 15, 22, 18, 16];
+  for (const w of ws) {
+    const top = 156 + Math.floor(R() * 20), c = cols[Math.floor(R() * cols.length)], step = R() < 0.5;
+    for (let i = 0; i < w; i++) {
+      const d = Math.abs(i + 0.5 - w / 2);
+      const t = step ? top - (d < 3 ? 8 : d < 6 ? 4 : 0) : top - Math.floor(Math.max(0, w / 2 - d));
+      for (let y = t; y < ST; y++) px(x + i, y, c, 1);
+    }
+    for (let wy = top + 3; wy < 204; wy += 8)
+      for (let wx = x + 3; wx < x + w - 3; wx += 4) {
+        const lit = R() < 0.42, wc = lit ? wins[Math.floor(R() * 3)] : dark;
+        px(wx, wy, wc, 1); px(wx + 1, wy, wc, 1); px(wx, wy + 1, wc, 1); px(wx + 1, wy + 1, wc, 1); px(wx, wy + 2, wc, 1); px(wx + 1, wy + 2, wc, 1);
+        if (lit) glow(Afar, wx + 1, wy + 1.5, 4, 4, WINL, 0.15, { bands: 2, lm: LM, lmI: 0.2 });
+      }
+    x += w;
+  }
+  // hazy autumn trees along the side canal
+  for (let tx = 452; tx < 548; tx += 11 + Math.floor(R() * 6)) {
+    const hue = pickHue(R()), cy = 196 + R() * 4;
+    for (let y = 186; y < 212; y++) for (let x2 = tx - 7; x2 <= tx + 7; x2++) {
+      const d = Math.hypot((x2 - tx) / 7, (y - cy) / 9);
+      if (d + (vnoise(x2 * 0.5, y * 0.5, 3) - 0.5) * 0.5 < 1 && h2(x2, y) > 0.15)
+        px(x2, y, mix(RAMPS[hue][y > cy + 2 ? 3 : 2], C('#262a58'), 0.45), 1);
+    }
+  }
+}
+
+/* ============================================================
+   CANAL HOUSES
+   ============================================================ */
+const MATS = {
+  brickR: ['#3a2130', '#2b1725', '#4a2a3a', 1, '#666d8e', '#7c85a4'],
+  brickB: ['#33232b', '#261a21', '#412c36', 1, '#5f6686', '#78819f'],
+  brickD: ['#2d1f2c', '#221722', '#3a2836', 1, '#5a6080', '#737c9a'],
+  black:  ['#1a1c28', '#13141d', '#242736', 0, '#555c7c', '#6e7896'],
+  cream:  ['#464c6c', '#393e5b', '#545a7c', 0, '#6c7596', '#2a3040'],
+  gray:   ['#353b58', '#2a2f49', '#414867', 0, '#646d8e', '#747e9c'],
+  green:  ['#1f2b33', '#172028', '#283640', 0, '#59627f', '#6e7896'],
+  ochre:  ['#3e3140', '#312634', '#4b3b4b', 0, '#636a8a', '#737c9a'],
+};
+function mat(name) {
+  const m = MATS[name];
+  return { base: C(m[0]), dark: C(m[1]), lite: C(m[2]), brick: m[3], trim: C(m[4]), trimL: mix(C(m[4]), C('#9aa4c4'), 0.4), trimD: mix(C(m[4]), C(m[1]), 0.5), frame: C(m[5]) };
+}
+const HOUSES = [
+  { x: -8,  w: 46, fl: 4, fh: 24, gable: 'step', g: 30, m: 'brickR', steps: 3, lit: 0.45 },
+  { x: 38,  w: 44, fl: 4, fh: 23, gable: 'bell', g: 30, m: 'cream', lit: 0.6 },
+  { x: 82,  w: 50, fl: 4, fh: 25, gable: 'cornice', g: 5, m: 'black', chimney: 120, lit: 0.35 },
+  { x: 132, w: 42, fl: 4, fh: 24, gable: 'neck', g: 34, m: 'brickB', lit: 0.55 },
+  { x: 174, w: 62, fl: 3, fh: 27, gable: 'pediment', g: 14, m: 'gray', cafe: true, lit: 0.6 },
+  { x: 236, w: 44, fl: 4, fh: 23, gable: 'step', g: 28, m: 'brickD', steps: 3, lit: 0.5 },
+  { x: 280, w: 46, fl: 4, fh: 24, gable: 'bell', g: 26, m: 'green', lit: 0.45 },
+  { x: 326, w: 54, fl: 4, fh: 25, gable: 'step', g: 34, m: 'brickB', steps: 4, chimney: 373, lit: 0.55 },
+  { x: 380, w: 38, fl: 4, fh: 23, gable: 'neck', g: 30, m: 'ochre', lit: 0.5 },
+  { x: 418, w: 34, fl: 3, fh: 26, gable: 'spout', g: 26, m: 'black', lit: 0.45 },
+  { x: 548, w: 52, fl: 4, fh: 24, gable: 'cornice', g: 5, m: 'brickR', lit: 0.4 },
+  { x: 600, w: 48, fl: 4, fh: 23, gable: 'step', g: 30, m: 'cream', steps: 3, lit: 0.5 },
+];
+const SPECIAL = {
+  '1:3:1': { dyn: 'cat', style: 'warm' },
+  '7:1:2': { dyn: 'tv', style: 'tv' },
+  '3:3:1': { dyn: 'fire', style: 'fire' },
+  '5:0:1': { dyn: 'candle', style: 'amber' },
+  '6:2:0': { dyn: 'switchA', style: 'gold', deco: 'curtain' },
+  '10:1:1': { dyn: 'switchB', style: 'warm', deco: 'plant' },
+  '8:2:0': { lit: true, style: 'amber', deco: 'person' },
+  '2:1:1': { lit: true, style: 'gold', deco: 'lamp' },
+};
+const KFN = {
+  tv: t => 0.82 + 0.1 * tn(t, 0.4, 901) + 0.08 * tn(t, 1.1, 902),   // soft, slow shifts — no strobing
+  fire: t => 0.66 + 0.2 * tn(t, 2.5, 11) + 0.14 * tn(t, 7, 12),
+  candle: t => 0.8 + 0.12 * tn(t, 1.5, 21) + 0.08 * tn(t, 6, 22),
+  switchA: t => (t >= 21 && t < 46) ? 0 : 1,
+  switchB: t => (t >= 12 && t < 38) ? 1 : 0,
+  cat: () => 1,
+};
+const STOOPS = [];
+let CAT = null;
+
+function gableHW(h, dy) {
+  const g = h.g, w = h.w, v = dy / g, hw0 = w / 2;
+  switch (h.gable) {
+    case 'step': {
+      const ns = h.steps || 3, top = 3.5, sh = g / (ns + 1), s = Math.floor((dy - 1) / sh);
+      return s >= ns ? top : hw0 - s * (hw0 - top) / ns;
+    }
+    case 'bell': {
+      if (v < 0.14) return hw0;
+      if (v < 0.2) return hw0 - 2;
+      const u = (v - 0.2) / 0.8, nk = Math.max(4, w * 0.16);
+      let r = nk + (hw0 - 2 - nk) * Math.pow(1 - u, 2.2);
+      if (u > 0.8) r = Math.min(r, nk * Math.sqrt(Math.max(0, 1 - ((u - 0.8) / 0.2) ** 2)) + 0.5);
+      return r;
+    }
+    case 'neck': {
+      const nk = Math.max(4.5, w * 0.2);
+      if (v < 0.3) { const u = v / 0.3; return nk + (hw0 - nk) * Math.sqrt(Math.max(0, 1 - u * u)); }
+      if (v < 0.8) return nk;
+      if (v < 0.87) return nk + 1;
+      return (nk + 1) * (1 - (v - 0.87) / 0.13);
+    }
+    case 'spout': {
+      const nk = Math.max(4, w * 0.22);
+      if (v < 0.25) return hw0;
+      if (v < 0.45) return hw0 - (hw0 - nk) * 0.5;
+      if (v < 0.72) return nk;
+      return nk * (1 - (v - 0.72) / 0.28);
+    }
+    case 'cornice': return dy <= 4 ? hw0 + (dy >= 3 ? 1 : 0) : -1;
+    case 'pediment': {
+      if (dy <= 4) return hw0 + (dy >= 3 ? 1 : 0);
+      return w * 0.3 * (1 - (dy - 4) / (g - 4));
+    }
+  }
+  return -1;
+}
+function inHouse(h, x, y) {
+  if (y >= h.bt && y < ST) return x >= h.x && x < h.x + h.w;
+  const dy = h.bt - y;
+  if (dy < 1 || dy > h.g) return false;
+  const hw = gableHW(h, dy);
+  if (hw < 0) return false;
+  const cx = h.x + h.w / 2;
+  return x >= Math.floor(cx - hw) && x < Math.ceil(cx + hw);
+}
+function facade(h, x, y) {
+  const m = h.mc;
+  if (m.brick) {
+    if (y % 3 === 0) return bay(x, y) < 0.5 ? m.dark : m.base;
+    if ((x + (Math.floor(y / 3) % 2) * 3) % 6 === 0 && h2(x, y) < 0.5) return m.dark;
+    return h2(x * 3, y) < 0.04 ? m.lite : m.base;
+  }
+  const n = h2(x * 7 + h.x, y);
+  return n < 0.05 ? m.dark : n > 0.96 ? m.lite : m.base;
+}
+
+/* ---------- windows ---------- */
+const LIT = {
+  warm:  ['#d27a38', '#f0a04a', '#ffc36a', '#ffdb92'],
+  gold:  ['#e2a452', '#fcc46a', '#ffe096', '#fff2c4'],
+  amber: ['#a8522a', '#c86c32', '#e38c40', '#f6aa52'],
+  dim:   ['#4e2622', '#643026', '#7a3e2a', '#8e4c30'],
+  tv:    ['#3e4c86', '#56679e', '#6e80b2', '#8a9ac4'],
+  fire:  ['#7a2c1c', '#c8581e', '#f2872e', '#ffbe5a'],
+};
+for (const k in LIT) LIT[k] = LIT[k].map(C);
+const HALO_I = { warm: 0.22, gold: 0.28, amber: 0.17, dim: 0.07, tv: 0.1, fire: 0.24 };
+const GLASS_DARK_T = C('#121731'), GLASS_DARK_B = C('#0c1024'), GLASS_REFL = C('#232c4e'), GLASS_SKY = C('#1a2140');
+const BAR_LIT = C('#3a2420'), ROOM_OFF = C('#110e19'), BAR_DYN = C('#2a2230');
+
+function winState(hi, f, k, h) {
+  const sp = SPECIAL[hi + ':' + f + ':' + k];
+  if (sp) return sp;
+  const floorLit = h3(hi, f, 5) < (h.lit ?? 0.5);
+  if (h3(hi, f * 7 + k, 17) > (floorLit ? 0.85 : 0.1)) return { lit: false };
+  const r2 = h3(hi, f, 41), r3 = h3(hi, f * 5 + k, 43);
+  const style = r2 < 0.38 ? 'warm' : r2 < 0.58 ? 'gold' : r2 < 0.86 ? 'amber' : 'dim';
+  const deco = r3 < 0.32 ? 'curtain' : r3 < 0.52 ? 'plant' : r3 < 0.6 ? 'lamp' : '';
+  return { lit: true, style, deco };
+}
+function litGlass(st, i, j, gw, gh, X, Y) {
+  const ramp = LIT[st.style];
+  const v = st.style === 'fire' ? Math.pow(j / Math.max(1, gh - 1), 1.4) * 3.3 + (bay(X, Y) - 0.5)
+    : (j / Math.max(1, gh - 1)) * 2.3 + 0.35 + (bay(X, Y) - 0.5);
+  let c = ramp[clamp(Math.round(v), 0, 3)];
+  if (st.deco === 'curtain' && (i === 0 || i === gw - 1)) c = mix(ramp[0], C('#2a1418'), j % 3 === 0 ? 0.55 : 0.38);
+  if (st.deco === 'plant' && j >= gh - 3 && h2(X * 5, Y * 3) < 0.35 + (j - gh + 3) * 0.22) c = C('#24161a');
+  if (st.deco === 'lamp') {
+    c = mix(c, ramp[0], 0.35);
+    if (i >= gw - 2 && j >= gh - 5 && j <= gh - 4) c = C('#fff2c4');
+    if (i === gw - 2 && j > gh - 4) c = C('#3a2420');
+  }
+  if (st.deco === 'person') {
+    const cx = Math.floor(gw / 2) - 1, dx = i - cx;
+    if ((j === gh - 7 || j === gh - 6) && (dx === 0 || dx === 1)) c = C('#2a1a1c');
+    if (j >= gh - 5 && dx >= -1 && dx <= 2) c = C('#2a1a1c');
+    if (i === gw - 1 && j === gh - 6) c = C('#fff0c0');
+  }
+  return c;
+}
+// every house window is registered so a click can switch its light on or off
+const WINDOWS = [];
+const pack = c => ((255 << 24) | (Math.round(c[2]) << 16) | (Math.round(c[1]) << 8) | Math.round(c[0])) >>> 0;
+function drawWindow(x, y, w, h, st, m, noLintel) {
+  const dyn = !!st.dyn, lit = st.lit || dyn;
+  if (!noLintel) {
+    if (m.brick) { for (let i = -1; i <= w; i++) px(x + i, y - 1, i === Math.floor(w / 2) ? m.trimL : m.trim); }
+    else for (let i = 0; i < w; i++) px(x + i, y - 1, m.lite);
+  }
+  const frame = st.lit ? mix(m.frame, C('#e0a060'), 0.3) : m.frame;
+  rect(x, y, w, h, frame);
+  for (let i = -1; i <= w; i++) px(x + i, y + h, m.trim);
+  const gx = x + 1, gy = y + 1, gw = w - 2, gh = h - 2;
+  const rail = gy + Math.floor(gh * 0.48), mull = gw >= 5 ? gx + Math.floor(gw / 2) : -1;
+  // how this window looks when someone switches it on (for windows that start dark)
+  const r = h2(x * 13, y * 7);
+  const onSt = st.lit ? st : noLintel ? { style: 'dim' }
+    : { style: r < 0.4 ? 'warm' : r < 0.65 ? 'gold' : 'amber', deco: ['curtain', 'plant', '', 'curtain'][Math.floor(h2(y, x) * 4)] };
+  const litPix = [], gIdx = [], gLit = [], gDark = [];
+  for (let j = 0; j < gh; j++) for (let i = 0; i < gw; i++) {
+    const X = gx + i, Y = gy + j, bar = Y === rail || X === mull;
+    if (dyn) {
+      const base = bar ? BAR_DYN : ROOM_OFF;
+      px(X, Y, base, 1);
+      if (!bar) litPix.push([X, Y, litGlass(st, i, j, gw, gh, X, Y), base]);
+      continue;
+    }
+    let dc = j < gh * 0.45 ? GLASS_DARK_T : GLASS_DARK_B;
+    if ((i + j) % 7 === 0 && j < gh * 0.45) dc = GLASS_REFL;
+    if (j === 0) dc = GLASS_SKY;
+    const darkC = bar ? frame : dc, litC = bar ? BAR_LIT : litGlass(onSt, i, j, gw, gh, X, Y);
+    px(X, Y, lit ? litC : darkC, 1);
+    gIdx.push(Y * W + X); gLit.push(pack(litC)); gDark.push(pack(darkC));
+  }
+  const cx = x + w / 2, cy = y + h / 2, hI = HALO_I[st.style] || 0.2;
+  const win = { x, y, w, h, def: lit, on: lit, dyn: st.dyn || null, user: null, hI: HALO_I[onSt.style] || 0.2,
+    glass: new Int32Array(gIdx), litC: new Uint32Array(gLit), darkC: new Uint32Array(gDark) };
+  WINDOWS.push(win);
+  if (dyn) {
+    const glass = tmpSprite(true, A => {
+      for (const [X, Y, c, b] of litPix) { const a = (Y * W + X) * 3; A[a] = c[0] - b[0]; A[a + 1] = c[1] - b[1]; A[a + 2] = c[2] - b[2]; }
+    });
+    const col = st.style === 'tv' ? C('#6a80c8') : WINL;
+    const halo = tmpSprite(false, A => {
+      glow(A, cx, cy, w * 0.9 + 3, h * 0.6 + 3, col, hI, { bands: 3, pow: 1.6 });
+      glow(A, cx, y + h + 1, w * 0.7, 3, col, 0.25, { bands: 2, pow: 1 });
+    });
+    const k = KFN[st.dyn];
+    win.k = t => win.user === null ? k(t) : win.user ? (k(t) || 1) : 0;
+    DYN.push({ s: glass, k: win.k, stage: 'back' }, { s: halo, k: win.k, stage: 'back' });
+    if (st.dyn === 'cat') CAT = { x: gx, y: gy, gw, gh };
+  } else if (lit) {
+    glow(Afar, cx, cy, w * 0.9 + 3, h * 0.6 + 3, WINL, hI, { bands: 3, pow: 1.6, lm: LM, lmI: 0.35 });
+    glow(Afar, cx, y + h + 1, w * 0.7, 3, WINL, hI, { bands: 2, pow: 1 });
+  }
+}
+
+function drawHouse(h, hi) {
+  use(Lback, Mback);
+  const m = h.mc = mat(h.m);
+  const x0 = h.x, w = h.w, bt = h.bt = GF - h.fl * h.fh;
+  h.peak = bt - h.g;
+  const cx = x0 + w / 2;
+  // pitched roof behind flat-topped houses, and chimney stacks
+  if (h.gable === 'cornice' || h.gable === 'pediment') {
+    for (let j = 0; j < 10; j++) for (let x = x0 + 3 + j; x < x0 + w - 3 - j; x++)
+      px(x, bt - 4 - j, j === 9 ? C('#262b44') : (x + j) % 4 === 0 ? C('#12152a') : C('#171b30'));
+    // lit dormer
+    if (h.gable === 'cornice') {
+      const dx = Math.round(cx - 3);
+      rect(dx, bt - 12, 6, 7, C('#1c2036'));
+      rect(dx + 1, bt - 11, 4, 1, C('#2c3350'));
+      const lit = h2(hi, 3) < 0.6;
+      rect(dx + 2, bt - 10, 2, 3, lit ? C('#f0a04a') : GLASS_DARK_T, 1);
+      if (lit) glow(Afar, dx + 3, bt - 8.5, 5, 5, WINL, 0.2, { bands: 2, lm: LM, lmI: 0.3 });
+    }
+  }
+  if (h.chimney) {
+    const top = h.peak - (h.gable === 'cornice' ? 12 : -8);
+    h.chimTop = top;
+    for (let y = top; y < bt; y++) for (let x = h.chimney - 2; x <= h.chimney + 2; x++)
+      px(x, y, x === h.chimney + 2 ? C('#2a2233') : C('#1c1722'));
+    rect(h.chimney - 3, top - 1, 7, 1, C('#35324a')); rect(h.chimney - 1, top - 2, 3, 1, C('#16131c'));
+  }
+  // body and gable
+  for (let y = bt; y < ST; y++) for (let x = x0; x < x0 + w; x++) px(x, y, x === x0 ? m.dark : facade(h, x, y));
+  for (let dy = 1; dy <= h.g; dy++) {
+    const hw = gableHW(h, dy);
+    if (hw < 0) continue;
+    const y = bt - dy;
+    for (let x = Math.floor(cx - hw); x < Math.ceil(cx + hw); x++) {
+      let c = facade(h, x, y);
+      if ((h.gable === 'cornice' || h.gable === 'pediment') && dy <= 4)
+        c = dy === 1 ? ((x & 1) ? m.trim : m.trimD) : dy === 2 ? m.trimD : m.trim;
+      px(x, y, c);
+    }
+  }
+  // stone copings and moonlit right edges
+  const orn = h.gable !== 'step';
+  for (let y = h.peak - 1; y <= bt; y++) for (let x = x0 - 2; x < x0 + w + 2; x++) {
+    if (!inHouse(h, x, y)) continue;
+    const up = inHouse(h, x, y - 1), lf = inHouse(h, x - 1, y), rt = inHouse(h, x + 1, y);
+    if (!up) px(x, y, rt ? m.trim : m.trimL);
+    else if (orn && y < bt && (!lf || !rt)) px(x, y, rt ? m.trim : m.trimL);
+    else if (!rt && y < bt) px(x, y, m.lite);
+  }
+  if (h.gable === 'cornice' || h.gable === 'pediment') for (let x = x0 - 1; x <= x0 + w; x++) px(x, bt - 4, m.trimL);
+  // apex ornament + hoisting beam
+  const ax = Math.round(cx - 0.5);
+  if (h.gable !== 'cornice') { px(ax, h.peak - 1, m.trimL); if (orn) px(ax, h.peak - 2, m.trim); }
+  const by = h.gable === 'cornice' ? bt - 2 : h.gable === 'pediment' ? bt - 7 : h.peak + 4;
+  rect(ax - 1, by, 3, 2, C('#120f18')); px(ax, by + 2, C('#0c0a10')); px(ax, by + 3, C('#0c0a10')); px(ax + 1, by + 4, C('#0c0a10'));
+  // gable openings
+  const gst = (k) => { const r = h3(hi, 99, k); return r < 0.3 ? { lit: true, style: r < 0.12 ? 'amber' : 'dim' } : { lit: false }; };
+  if (h.gable === 'step' || h.gable === 'spout') {
+    const hy = bt - Math.round(h.g * 0.55);
+    rect(ax - 2, hy, 5, 8, C('#1e1a22')); rect(ax - 2, hy, 5, 1, m.trim); px(ax, hy + 4, C('#3a3040'));
+    if (h.g >= 28) drawWindow(ax - 2, bt - Math.round(h.g * 0.2) - 7, 5, 7, gst(0), m);
+  } else if (h.gable === 'neck' || h.gable === 'bell') {
+    drawWindow(ax - 2, bt - Math.round(h.g * 0.5) - 3, 5, 9, gst(1), m);
+    if (h.gable === 'bell') { px(ax - 1, bt - Math.round(h.g * 0.78), C('#0e1024')); px(ax, bt - Math.round(h.g * 0.78), C('#0e1024')); }
+  } else if (h.gable === 'pediment') {
+    const oy = bt - 9;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (dx * dx + dy * dy < 2) px(ax + dx, oy + dy, C('#f0a04a'), 1);
+    glow(Afar, ax + 0.5, oy + 0.5, 4, 4, WINL, 0.2, { bands: 2 });
+  }
+  // upper floors
+  const nW = w >= 56 ? 4 : w >= 40 ? 3 : 2;
+  const ww = (w - nW * 9) / (nW + 1) >= 3.5 ? 9 : 7;
+  const gap = (w - nW * ww) / (nW + 1);
+  for (let f = 0; f < h.fl; f++) {
+    const rt = bt + f * h.fh, wh = h.fh - (f === 0 ? 10 : 8), wy = rt + (f === 0 ? 5 : 4);
+    if (!m.brick && f > 0) for (let x = x0 + 1; x < x0 + w; x++) px(x, rt, m.lite);
+    for (let k = 0; k < nW; k++) drawWindow(Math.round(x0 + gap * (k + 1) + ww * k), wy, ww, wh, winState(hi, f, k, h), m);
+  }
+  if (h.cafe) drawCafe(h); else groundFloor(h, hi);
+}
+
+function groundFloor(h, hi) {
+  const m = h.mc, x0 = h.x, w = h.w;
+  const left = h2(hi, 7) < 0.5, dw = 7;
+  const dx = left ? x0 + 4 : x0 + w - 4 - dw;
+  rect(dx - 1, 186, dw + 2, 24, m.trim);
+  const fanLit = h2(hi, 8) < 0.65;
+  for (let i = 0; i < dw; i++) for (let j = 0; j < 3; j++)
+    px(dx + i, 187 + j, (i % 2 === 1 && j > 0) ? m.trim : fanLit ? (j === 0 ? C('#e89a48') : C('#ffc46a')) : GLASS_DARK_T, 1);
+  if (fanLit) glow(Afar, dx + dw / 2, 188.5, 8, 5, WINL, 0.28, { bands: 3, lm: LM, lmI: 0.25 });
+  const doorC = [C('#1f2c2a'), C('#2c1a20'), C('#1a1e2e'), C('#2a2430')][Math.floor(h2(hi, 9) * 4)];
+  rect(dx, 191, dw, 19, doorC);
+  const panel = mix(doorC, C('#000000'), 0.35);
+  for (let j = 193; j < 208; j++) { px(dx + 1, j, panel); px(dx + dw - 2, j, panel); }
+  px(left ? dx + dw - 2 : dx + 1, 200, C('#b08a50'));
+  for (let j = 0; j < 4; j++) rect(dx - 2 - j, 210 + j, dw + 4 + 2 * j, 1, j === 0 ? m.trimL : m.trim);
+  STOOPS.push({ x: dx - 5, w: dw + 10 });
+  const sx0 = left ? dx + dw + 3 : x0 + 3, sx1 = left ? x0 + w - 3 : dx - 3, span = sx1 - sx0;
+  const n = span >= 24 ? 2 : 1, g = (span - n * 9) / (n + 1);
+  for (let k = 0; k < n; k++) {
+    const wx = Math.round(sx0 + g * (k + 1) + 9 * k);
+    drawWindow(wx, 190, 9, 15, winState(hi, 9, k, { lit: 0.7 }), m);
+    const bl = h3(hi, 77, k) < 0.3;
+    drawWindow(wx, 207, 9, 5, bl ? { lit: true, style: 'dim' } : { lit: false }, m, true);
+  }
+}
+
+const FONT = { C: ['###', '#..', '#..', '#..', '###'], A: ['.#.', '#.#', '###', '#.#', '#.#'], F: ['###', '#..', '##.', '#..', '#..'], E: ['###', '#..', '##.', '#..', '###'] };
+function drawCafe(h) {
+  const x0 = h.x, w = h.w;
+  rect(x0 + 2, 184, w - 4, 30, C('#1d1a24'));
+  // awning
+  const aw = C('#5a1c28'), awD = C('#3e1420'), awL = C('#7a2a34');
+  for (let x = x0 + 1; x < x0 + w - 1; x++) {
+    for (let y = 183; y <= 186; y++) px(x, y, y === 183 ? awL : ((x - x0) % 8 < 4 ? aw : awD));
+    for (let y = 187; y <= 191; y++) px(x, y, aw);
+    if ((x - x0) % 3 !== 1) px(x, 192, awD);
+  }
+  let lx = Math.round(x0 + w / 2 - 7);
+  for (const ch of 'CAFE') {
+    FONT[ch].forEach((row, j) => { for (let i = 0; i < 3; i++) if (row[i] === '#') px(lx + i, 187 + j, C('#f2d49a'), 1); });
+    lx += 4;
+  }
+  // big shop window
+  const G = LIT.warm;
+  for (let y = 194; y <= 211; y++) for (let x = x0 + 4; x <= x0 + 46; x++) {
+    const v = (y - 194) / 17 * 2.2 + 0.6 + (bay(x, y) - 0.5);
+    let c = G[clamp(Math.round(v), 0, 3)];
+    if (x === x0 + 25) c = C('#2a1a1a');
+    if (y === 206 || y === 207) c = C('#7a3e22');
+    px(x, y, c, 1);
+  }
+  for (const [lx2, ly] of [[x0 + 11, 197], [x0 + 32, 197], [x0 + 40, 198]]) {
+    for (let y = 194; y < ly; y++) px(lx2, y, C('#3a2420'), 1);
+    px(lx2, ly, C('#fff4cf'), 1); px(lx2 + 1, ly, C('#fff4cf'), 1); px(lx2, ly + 1, C('#ffe2a0'), 1);
+  }
+  const sil = C('#3a2220');
+  for (const [sx, sy] of [[x0 + 9, 200], [x0 + 18, 201], [x0 + 35, 199]]) {
+    rect(sx, sy, 2, 2, sil, 1); rect(sx - 1, sy + 2, 4, 4, sil, 1);
+  }
+  for (let x = x0 + 4; x <= x0 + 46; x++) if (h2(x, 11) < 0.5) px(x, 211, C('#2a1c1c'), 1);
+  // glass door
+  rect(x0 + 49, 193, 10, 21, C('#241c20'));
+  for (let y = 195; y <= 211; y++) for (let x = x0 + 51; x <= x0 + 56; x++) px(x, y, y === 203 ? C('#3a2420') : G[y < 200 ? 1 : 2], 1);
+  px(x0 + 51, 204, C('#d0a050'));
+  glow(Afar, x0 + 26, 202, 46, 26, WINL, 0.55, { bands: 5, pow: 1.5, lm: LM, lmI: 0.7 });
+  glow(Afar, x0 + 28, 217, 42, 7, WINL, 0.55, { bands: 4, pow: 1.2, lm: LM, lmI: 0.3 });
+}
+
+/* ============================================================
+   FAR QUAY, BRIDGE, LAMPS, TREES
+   ============================================================ */
+const BX0 = 436, BX1 = 564, BC = 500, BRA = 34, BRB = 19;
+const deckY = x => (x <= BX0 || x >= BX1) ? ST : ST - 10 * Math.sin(Math.PI * (x - BX0) / (BX1 - BX0));
+const feetY = x => Math.round(deckY(x)) + 5;
+const FAR_LAMPS = [118, 244, 354, 580];
+const FAULTY_LAMP = 118;
+const FAR_TREES = [62, 300, 408, 616];
+const FAR_BIKES = [[128, 1], [312, -1], [336, 1], [592, -1]];
+const BULBS = [];
+
+function drawFarStreet() {
+  use(Lback, Mback);
+  const stones = ['#1a1e30', '#20253a', '#1c2034'].map(C), gapC = C('#10121d'), hiC = C('#2c3350');
+  for (let y = ST; y <= 221; y++) for (let x = 0; x < W; x++) {
+    const row = (y - ST) >> 1, off = (row & 1) * 2, cx = Math.floor((x + off) / 4), jx = (x + off) % 4, jy = (y - ST) & 1;
+    let c = (jx === 0 || (jy === 1 && h2(cx, row) < 0.3)) ? gapC : stones[Math.floor(h2(cx, row + 9) * 3)];
+    if (jy === 0 && jx === 2) c = hiC;
+    if (y === ST) c = C('#121420');
+    px(x, y, c);
+  }
+  for (const s of STOOPS) for (let j = 0; j < 3; j++) rect(s.x + j, ST + j, s.w - 2 * j, 1, j === 0 ? C('#3c4260') : C('#30354e'));
+  for (let x = 0; x < W; x++) {
+    px(x, 222, x % 22 === 0 ? C('#2a2e44') : C('#474d6a'));
+    px(x, 223, C('#2e3348'));
+    for (let y = 224; y < WL; y++) {
+      let c = (y - 224) % 2 === 1 ? C('#1c1622') : (((x + (y % 4 === 0 ? 3 : 0)) % 7 === 0) ? C('#1c1622') : C('#271c2a'));
+      if (y === WL - 1) c = C('#141220');
+      px(x, y, c);
+    }
+  }
+  // wet reflections of the lamps on the far street
+  for (const lx of FAR_LAMPS) for (let y = 215; y <= 221; y++) {
+    if (y % 2) px(lx, y, C('#a0703e'), 1);
+    if (y % 3 === 0) px(lx + 1, y, C('#6a4a38'), 1);
+  }
+}
+function drawBridge() {
+  use(Lback, Mback);
+  const brick = C('#35202c'), brickD = C('#271823'), stone = C('#4c5270'), stoneD = C('#353a55'), stoneL = C('#5e6688');
+  for (let x = BX0; x <= BX1; x++) {
+    const top = Math.round(deckY(x));
+    for (let y = top; y < WL; y++) {
+      const ex = (x + 0.5 - BC) / BRA, ey = (y + 0.5 - WL) / BRB, e = ex * ex + ey * ey;
+      const ox = (x + 0.5 - BC) / (BRA + 3), oy = (y + 0.5 - WL) / (BRB + 3), o = ox * ox + oy * oy;
+      let c;
+      if (e < 1) {                                     // looking through the arch
+        if (y >= 221) c = (h2(x, y) < 0.08) ? C('#6a4a3a') : (y % 2 ? C('#0c1228') : C('#0e1530'));
+        else c = e > 0.8 ? C('#1a1624') : C('#080a14');
+      } else if (o < 1) {                              // stone voussoir ring
+        const ang = Math.atan2((y + 0.5 - WL) * BRA / BRB, x + 0.5 - BC);
+        c = (Math.floor(ang / 0.21) & 1) ? stone : stoneD;
+        if (Math.abs(x + 0.5 - BC) < 2 && y < WL - BRB) c = stoneL;
+      } else if (y - top < 2) c = y === top ? stoneL : stone;
+      else if (y - top === 2) c = C('#15121c');
+      else c = (y % 3 === 0 || (x + (Math.floor(y / 3) & 1) * 3) % 6 === 0) ? brickD : brick;
+      px(x, y, c, e < 1 ? 1 : 0);
+    }
+  }
+  // bulbs along the arch ring and the deck ramps
+  const bulb = (bx, by) => {
+    bx = Math.round(bx); by = Math.round(by);
+    BULBS.push([bx, by]);
+    px(bx, by, C('#fff1c4'), 1);
+    glow(Afar, bx + 0.5, by + 0.5, 4, 4, BULB, 0.5, { bands: 2, lm: LM, lmI: 0.5 });
+  };
+  for (let i = 1; i < 16; i++) { const a = Math.PI * i / 16; bulb(BC - 0.5 + Math.cos(a) * (BRA + 5), WL - Math.sin(a) * (BRB + 4.5)); }
+  for (let x = BX0 + 4; x <= BX1 - 4; x += 7) if (x < BC - BRA - 4 || x > BC + BRA + 4) bulb(x, deckY(x) + 3);
+}
+function drawBridgeRail() {
+  use(Lfront, Mfront);
+  const iron = C('#131620'), ironL = C('#2c3350');
+  for (let x = BX0 - 2; x <= BX1 + 2; x++) {
+    const t = Math.round(deckY(x));
+    px(x, t - 6, ironL); px(x, t - 5, iron);
+    px(x, t - 2, iron);
+    if (x % 4 === 0) for (let y = t - 4; y < t; y++) px(x, y, iron);
+    if (x % 4 === 2) px(x, t - 3, iron);
+  }
+  for (const bx of [BX0 - 2, BX1 + 2]) for (let y = ST - 9; y < ST; y++) { px(bx, y, C('#1a1d28')); px(bx + 1, y, C('#1a1d28')); }
+}
+function farLampGlow(x, A, lm) {
+  glow(A, x + 0.5, 183, 22, 20, LAMP, 0.55, { bands: 5, pow: 2.2, lm, lmI: 0.8 });
+  glow(A, x + 0.5, 219, 32, 7, LAMP, 0.5, { bands: 4, pow: 1.4, lm, lmI: 0.2 });
+}
+function drawFarLamp(x) {
+  use(Lfront, Mfront);
+  const post = C('#161c22'), postL = C('#2a3440');
+  for (let y = 186; y <= 221; y++) px(x, y, y % 11 === 0 ? postL : post);
+  rect(x - 1, 219, 3, 3, post); px(x + 1, 219, postL);
+  rect(x - 2, 188, 5, 1, post);
+  const off = x === FAULTY_LAMP;
+  const glass = off ? C('#4a3a3a') : C('#ffe9b0');
+  for (let y = 181; y <= 185; y++) { px(x - 1, y, y === 185 ? post : C('#2a2a30')); px(x, y, glass, 1); px(x + 1, y, y === 185 ? post : C('#2a2a30')); }
+  px(x - 1, 182, off ? glass : C('#ffc870'), 1); px(x + 1, 183, off ? glass : C('#ffc870'), 1);
+  rect(x - 2, 180, 5, 1, post); px(x, 179, post);
+  if (off) {
+    DYN.push({
+      s: tmpSprite(true, A => { const a = (183 * W + x) * 3; for (let y = 181; y <= 184; y++) { const b = (y * W + x) * 3; A[b] = 180; A[b + 1] = 175; A[b + 2] = 120; } void a; }),
+      k: faultyK, stage: 'front',
+    }, { s: tmpSprite(false, A => farLampGlow(x, A, null)), k: faultyK, stage: 'front' });
+    glow(null, x + 0.5, 183, 22, 20, LAMP, 0.55, { bands: 5, pow: 2.2, lm: LM, lmI: 0.8 });
+  }
+}
+function faultyK(t) {
+  if ((t > 13 && t < 14.6) || (t > 41.2 && t < 42.1)) return h2(77, Math.floor(t * 18)) < 0.5 ? 0.15 : 1;
+  return 1;
+}
+// a lumpy clump of foliage: union of small sub-clumps, each shaded on its own,
+// with 2x2 leaf texture so it reads as leaves rather than a dithered ball
+function leafBlob(cx, cy, r, hue, lightAt, seed, holes = 0.5, base = 1.4) {
+  const ramp = RAMPS[hue], rim = RIMS[hue], R = rng(seed * 7 + 1);
+  const subs = [[cx, cy, r * 0.72]];
+  const n = 4 + Math.floor(r / 3);
+  for (let i = 0; i < n; i++) {
+    const a = R() * TAU, d = r * (0.3 + R() * 0.5);
+    subs.push([cx + Math.cos(a) * d, cy + Math.sin(a) * d * 0.75, r * (0.34 + R() * 0.28)]);
+  }
+  const ext = Math.ceil(r * 1.3);
+  for (let y = Math.floor(cy - ext); y <= cy + ext; y++) for (let x = Math.floor(cx - ext); x <= cx + ext; x++) {
+    let best = -1, nx = 0, ny = 0;
+    for (const [sx, sy, sr] of subs) {
+      const dx = x + 0.5 - sx, dy = y + 0.5 - sy;
+      const v = 1 - Math.hypot(dx, dy) / sr + (vnoise(x * 0.45, y * 0.45, seed) - 0.5) * 0.45;
+      if (v > best) { best = v; nx = dx / sr; ny = dy / sr; }
+    }
+    if (best < 0) continue;
+    const tex = h2(Math.floor(x / 2) * 31 + seed, Math.floor(y / 2)) - 0.5;
+    if (best < 0.16 && h3(x, y, seed) < holes) continue;
+    const L = lightAt(x, y, nx, ny);
+    const v = base + L * 4.2 + tex * 0.9 + (bay(x, y) - 0.5) * 0.3 - Math.max(0, ny) * 0.9 * (1 - Math.min(1, L * 1.5)) - (best < 0.2 ? 0.4 : 0);
+    let c = ramp[clamp(Math.round(v), 0, 5)];
+    if (ny < -0.45 && L < 0.22 && tex > -0.1) c = rim;
+    px(x, y, c, 1);
+    if (CUR_TREE && x >= 0 && y >= 0 && x < W && y < H) { TREE[y * W + x] = CUR_TREE; TREE_HUE[y * W + x] = hue; }
+  }
+}
+// which tree canopy (if any) each pixel belongs to: 1 = the elm, 2 = a far tree
+let CUR_TREE = 0;
+const TREE = new Uint8Array(N), TREE_HUE = new Uint8Array(N);
+const FAR_LEAF_SRC = [];
+function drawFarTree(x) {
+  use(Lfront, Mfront);
+  const R = rng(x * 31 + 7);
+  const bark = [C('#0f0e15'), C('#1a1720'), C('#2a2634')];
+  limb(x, 221, x + 1, 178, 3.2, 2.2, bark);
+  const clusters = [];
+  const br = (bx, by, ang, len, th, d) => {
+    const ex = bx + Math.cos(ang) * len, ey = by + Math.sin(ang) * len;
+    limb(bx, by, ex, ey, th, th * 0.7, bark);
+    if (d === 0) { clusters.push([ex, ey, 7 + R() * 4]); return; }
+    br(ex, ey, ang - 0.3 - R() * 0.35, len * 0.72, th * 0.7, d - 1);
+    br(ex, ey, ang + 0.3 + R() * 0.35, len * 0.72, th * 0.7, d - 1);
+  };
+  br(x + 1, 180, -Math.PI / 2 - 0.55, 15, 2, 2);
+  br(x + 1, 180, -Math.PI / 2 + 0.55, 15, 2, 2);
+  br(x + 1, 182, -Math.PI / 2, 19, 1.8, 1);
+  clusters.unshift([x + 1, 166, 12]);
+  const lightAt = (px_, py_, nx, ny) => lumA(Afar, px_, py_) * 2.4 * (0.45 + 0.55 * Math.max(0, ny)) + 0.05;
+  CUR_TREE = 2;
+  for (const [cx, cy, r] of clusters) {
+    const hue = pickHue(R());
+    leafBlob(cx, cy, r, hue, lightAt, x + Math.floor(cx), 0.5, 1.5);
+    FAR_LEAF_SRC.push([cx, cy, r, hue]);
+  }
+  CUR_TREE = 0;
+}
+function drawSmallBike(x, dir, L, M) {
+  use(L, M);
+  const c = C('#11141d'), c2 = C('#1d2230'), gy = 221;
+  const P = (dx, dy) => [dir > 0 ? x + dx : x + 13 - dx, gy - dy];
+  const ring = (cx) => { const [wx, wy] = P(cx, 3); for (let a = 0; a < 20; a++) px(wx + Math.cos(a / 20 * TAU) * 3, wy + Math.sin(a / 20 * TAU) * 3, c); };
+  ring(3); ring(10);
+  const l = (a, b) => line(...P(...a), ...P(...b), c2);
+  l([3, 3], [6, 3]); l([6, 3], [5, 7]); l([6, 3], [9, 7]); l([9, 8], [10, 3]); l([4, 8], [6, 8]); l([8, 9], [10, 9]);
+}
+function drawBollards() {
+  use(Lfront, Mfront);
+  const c = C('#3a1c1e'), cL = C('#5a2a2a');
+  for (let x = 10; x < W; x += 16) {
+    if (x > BX0 - 6 && x < BX1 + 6) continue;
+    if (FAR_LAMPS.some(l => Math.abs(l - x) < 5) || FAR_TREES.some(t => Math.abs(t - x) < 5) || FAR_BIKES.some(([b]) => x > b - 3 && x < b + 16)) continue;
+    for (let y = 217; y <= 221; y++) { px(x, y, c); px(x + 1, y, y === 217 ? cL : c); }
+    px(x, 216, cL);
+  }
+}
+function drawCafeTerrace() {
+  use(Lfront, Mfront);
+  const d = C('#18161e');
+  for (const tx of [186, 206]) {
+    rect(tx - 1, 215, 4, 1, d); px(tx, 216, d); px(tx, 217, d); px(tx, 218, d); rect(tx - 1, 219, 3, 1, d);
+    px(tx - 3, 216, d); px(tx - 3, 217, d); px(tx - 3, 218, d); px(tx - 4, 219, d); px(tx - 2, 219, d);
+    px(tx + 1, 214, C('#ffd890'), 1);
+    glow(Afar, tx + 1.5, 214, 4, 3, WINL, 0.3, { bands: 2 });
+  }
+  rect(232, 213, 4, 7, C('#1a2220')); rect(233, 214, 2, 4, C('#2c3834'));
+}
+
+/* ============================================================
+   HOUSEBOAT
+   ============================================================ */
+const BOAT = { x0: 268, x1: 452, top: 279, bot: 294, cab0: 302, cab1: 444, cabTop: 253, pipeX: 434 };
+function drawBoat() {
+  use(Lboat, Mboat);
+  const B = BOAT;
+  const gun = C('#3a415c'), gunD = C('#262b40'), hullL = C('#1d2233'), hull = C('#141826');
+  const stripe = C('#4c1c28'), stripeD = C('#34141e'), below = C('#0d101b'), rust = C('#2a1c24');
+  for (let x = B.x0; x <= B.x1; x++) {
+    const dl = x - B.x0, dr = B.x1 - x;
+    let top = B.top, bot = B.bot;
+    if (dl < 9) { bot = B.bot - Math.round((9 - dl) * (9 - dl) / 9); if (dl < 3) top -= 1; }
+    if (dr < 4) bot = B.bot - Math.round((4 - dr) * 1.4);
+    const rusty = h2(x, 3) < 0.05;
+    for (let y = top; y <= bot; y++) {
+      let c = y === top ? gun : y === top + 1 ? gunD : (y === 289 || y === 290) ? stripe : y === 291 ? stripeD : y > 291 ? below : y < 284 ? hullL : hull;
+      if (rusty && y > top + 1 && y < 289) c = rust;
+      px(x, y, c);
+    }
+  }
+  // old tyres as fenders
+  for (const fx of [300, 348, 422]) {
+    for (let a = 0; a < 16; a++) px(fx + Math.cos(a / 16 * TAU) * 2.5, 284 + Math.sin(a / 16 * TAU) * 2.5, C('#07080d'));
+    px(fx - 2, 282, C('#262a3a')); line(fx, 279, fx, 281, C('#2a2a30'));
+  }
+  // bow deck with rail, a chair and potted shrubs
+  for (let x = B.x0 + 3; x < B.cab0; x++) px(x, B.top - 1, C('#2a2226'));
+  for (let x = B.x0 + 4; x < B.cab0; x++) px(x, 271, C('#262a3c'));
+  for (let x = B.x0 + 4; x < B.cab0; x += 6) for (let y = 272; y < B.top - 1; y++) px(x, y, C('#1c1f2c'));
+  const wood = C('#2a1c1c'), woodL = C('#3e2a26');
+  line(274, 277, 276, 272, wood); line(276, 272, 281, 272, woodL); line(280, 272, 281, 277, wood); line(276, 272, 274, 266, wood); line(274, 266, 275, 265, woodL);
+  rect(285, 271, 6, 6, C('#4a2a22')); rect(285, 271, 6, 1, C('#6a3a2a'));
+  const deckLight = (X, Y) => lumA(Anear, X, Y) * 2 + 0.15;
+  leafBlob(288, 265, 5, 0, deckLight, 9, 0.1, 1.5);
+  rect(297, 270, 4, 5, C('#4a2a22')); leafBlob(299, 267, 3.2, 1, deckLight, 5, 0.1, 1.5);
+  // cabin planks
+  const board = C('#1a3032'), boardL = C('#22393b'), boardD = C('#0f1f23'), post = C('#0e1a1e');
+  for (let y = B.cabTop; y < B.top; y++) for (let x = B.cab0; x <= B.cab1; x++) {
+    const r = (y - B.cabTop) % 3;
+    px(x, y, (x === B.cab0 || x === B.cab1) ? post : r === 2 ? boardD : r === 0 ? boardL : board);
+  }
+  for (let x = B.cab0 - 2; x <= B.cab1 + 2; x++) { px(x, 249, C('#3c4260')); px(x, 250, C('#20232f')); px(x, 251, C('#20232f')); px(x, 252, C('#101218')); }
+  // windows with warm interiors
+  const bw = [310, 330, 374, 396, 418];
+  bw.forEach((wx, i) => {
+    rect(wx - 1, 256, 13, 11, C('#2c2a30'));
+    const st = { lit: true, style: i === 3 ? 'amber' : i === 1 ? 'gold' : 'warm', deco: i === 0 ? 'plant' : i === 4 ? 'curtain' : '' };
+    if (i === 2) {  // candle-lit window flickers
+      const pix = [];
+      for (let j = 0; j < 9; j++) for (let k = 0; k < 11; k++) { const bar = k === 5; px(wx + k, 257 + j, bar ? BAR_DYN : ROOM_OFF, 1); if (!bar) pix.push([wx + k, 257 + j, litGlass({ style: 'amber' }, k, j, 11, 9, wx + k, 257 + j)]); }
+      DYN.push({ s: tmpSprite(true, A => { for (const [X, Y, c] of pix) { const a = (Y * W + X) * 3; A[a] = c[0] - ROOM_OFF[0]; A[a + 1] = c[1] - ROOM_OFF[1]; A[a + 2] = c[2] - ROOM_OFF[2]; } }), k: KFN.candle, stage: 'boat' });
+      DYN.push({ s: tmpSprite(false, A => glow(A, wx + 5.5, 262, 14, 10, WINL, 0.3, { bands: 3 })), k: KFN.candle, stage: 'boat' });
+    } else {
+      for (let j = 0; j < 9; j++) for (let k = 0; k < 11; k++) px(wx + k, 257 + j, k === 5 ? BAR_LIT : litGlass(st, k, j, 11, 9, wx + k, 257 + j), 1);
+      glow(Anear, wx + 5.5, 262, 14, 10, WINL, 0.3, { bands: 3, lm: LM, lmI: 0.3 });
+    }
+    glow(Anear, wx + 5.5, 270, 10, 5, WINL, 0.3, { bands: 2 });
+  });
+  // door with porthole
+  rect(352, 255, 12, 23, C('#1a1418')); rect(353, 256, 10, 22, C('#3a2420'));
+  for (let y = 258; y < 277; y += 5) for (let x = 354; x < 362; x++) px(x, y, C('#2c1c1a'));
+  for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) { const d = Math.hypot(dx, dy); if (d < 2.6) px(358 + dx, 262 + dy, d > 1.6 ? C('#6a6070') : C('#ffc46a'), d <= 1.6 ? 1 : 0); }
+  px(355, 268, C('#c8a050'));
+  // stove pipe
+  for (let y = 233; y < 249; y++) { px(B.pipeX, y, C('#16151c')); px(B.pipeX + 1, y, C('#2a2630')); }
+  rect(B.pipeX - 2, 231, 6, 2, C('#1c1a22')); rect(B.pipeX - 1, 230, 4, 1, C('#302c36'));
+  rect(B.pipeX - 1, 247, 4, 2, C('#1c1a22'));
+  // roof garden
+  const pots = [[308, 1], [321, 2], [344, 0], [389, 3], [410, 1]];
+  for (const [x, hue] of pots) {
+    rect(x - 2, 246, 5, 3, C('#5a2e24')); px(x - 2, 246, C('#7a4230'));
+    leafBlob(x, 241 - (x === 321 ? 3 : 0), x === 321 ? 5 : 3.5, hue, (X, Y, nx, ny) => lumA(Anear, X, Y) * 2 + 0.1, x, 0.15, 1.6);
+  }
+  // fairy lights between three posts
+  const posts = [304, 372, 441];
+  for (const p of posts) for (let y = 239; y < 249; y++) px(p, y, C('#1a1a22'));
+  const bulbCols = ['#ffd27a', '#ffb85a', '#ffe9a8', '#ff9a5a'].map(C);
+  let bi = 0;
+  for (let s = 0; s < 2; s++) {
+    const a = posts[s], b = posts[s + 1], mid = (a + b) / 2, half = (b - a) / 2;
+    for (let x = a; x <= b; x++) {
+      const y = 240 + 5 * (1 - ((x - mid) / half) ** 2);
+      px(x, y, C('#1c1a20'));
+      if ((x - a) % 5 === 2) {
+        const c = bulbCols[bi++ % 4];
+        px(x, y + 1, c, 1);
+        glow(Anear, x + 0.5, y + 1.5, 4, 4, BULB, 0.4, { bands: 2, lm: LM, lmI: 0.3 });
+      }
+    }
+  }
+}
+
+/* ============================================================
+   NEAR QUAY — cobbles, puddles, lamp, bikes, the big elm
+   ============================================================ */
+const NL = { x: 178, y: 216 };        // foreground lantern under the elm
+const NEAR_LAMPS = [178, 606];
+const SPEC = new Uint8Array(N), PM = new Uint8Array(N);
+const PUDDLES = [
+  { x: 194, y: 352, rx: 30, ry: 5, lamp: 178 },
+  { x: 318, y: 331, rx: 36, ry: 4.5 },
+  { x: 92, y: 324, rx: 22, ry: 3.5 },
+  { x: 452, y: 348, rx: 40, ry: 5.5, bridge: true },
+  { x: 620, y: 354, rx: 22, ry: 4, lamp: 606 },
+  { x: 548, y: 316, rx: 22, ry: 3 },
+];
+const NEAR_LEAF_SRC = [];
+
+// a big kiwi statue on a stone plinth beside the houseboat, beak toward the boat (personal "about me")
+function drawKiwi(kx, gy) {
+  use(Lnear, Mnear);
+  const S = 3, PT = gy - 12;                     // statue scale, plinth top
+  for (let y = gy - 3; y <= gy + 2; y++) for (let x = kx - 30; x <= kx + 32; x++) {   // shadow on the wet bricks
+    const d = Math.hypot((x - kx - 1) / 31, (y - gy) / 3.2);
+    if (d < 1) blend(x, y, C('#05060a'), 0.5 * (1 - d));
+  }
+  KIWI_DRAW = true;
+  // plinth: dressed stone with a cap, a darker base course and a brass plaque
+  const st = C('#3c4260'), stL = C('#5a6284'), stD = C('#262a3e'), stE = C('#1a1d2c');
+  for (let y = PT; y <= gy; y++) {
+    const cap = y < PT + 2, base = y > gy - 3, inset = cap ? 0 : base ? -1 : 2;
+    for (let x = kx - 20 - inset; x <= kx + 22 + inset; x++) {
+      const e = x === kx - 20 - inset ? stD : x === kx + 22 + inset ? stE : null;
+      let c = e || (y === PT ? stL : cap ? st : base ? stD : (h2(x * 3, y) < 0.06 ? stD : st));
+      if (!cap && !base && !e && (y - PT) % 4 === 3 && (x + (y >> 2) * 5) % 10 !== 0) c = mix(st, stD, 0.4);
+      px(x, y, c);
+    }
+  }
+  rect(kx - 5, PT + 4, 13, 5, C('#6a5024'));
+  rect(kx - 4, PT + 5, 11, 3, C('#b08c44'));
+  for (let i = 0; i < 9; i += 2) px(kx - 3 + i, PT + 6, C('#7a5c28'));
+  // the bird, drawn in the little kiwi's coordinates scaled up by S
+  const ramp = ['#2a1c14', '#45301f', '#634631', '#86643f', '#a8845a'].map(C);
+  const beakC = [C('#9a7a50'), C('#d2b688'), C('#ecd8b0')], legC = [C('#8a6a48'), C('#c09a72')];
+  const segD = (u, v, ax, ay, bx2, by2) => {
+    const dx = bx2 - ax, dy = by2 - ay, t = clamp(((u - ax) * dx + (v - ay) * dy) / (dx * dx + dy * dy), 0, 1);
+    return Math.hypot(u - ax - dx * t, v - ay - dy * t);
+  };
+  const ky = PT;
+  for (let y = ky - 13 * S; y <= ky; y++) for (let x = kx - 14 * S; x <= kx + 9 * S; x++) {
+    const u = (x + 0.5 - kx) / S, v = (y + 0.5 - ky) / S, dth = bay(x, y) - 0.5;
+    let c = null;
+    // legs and toes
+    for (const lx of [-1, 2]) {
+      if ((Math.abs(u - lx) < 0.42 && v > -3 && v <= 0) || (v > -0.45 && Math.abs(u - lx + 0.3) < 1.2)) c = legC[u > lx ? 1 : 0];
+    }
+    // body
+    const bu = (u - 1) / 6.8, bv = (v + 6) / 4.6, bd = bu * bu + bv * bv;
+    if (bd < 1) {
+      const lit = -bv * 0.9 - bu * 0.35 + 0.25 * (1 - bd) + dth * 0.35 + (vnoise(u * 1.6, v * 4.5, 77) - 0.5) * 0.7;
+      c = ramp[clamp(Math.round(1.6 + lit * 2.2), 0, 4)];
+      if (bd > 0.86 && bu > 0.2 && bv < 0.3) c = ramp[3];                              // warm rim on the lamp side
+    }
+    // head
+    const hd = Math.hypot(u + 5, v + 8.5);
+    if (hd < 2.7) {
+      const lit = -(v + 8.5) / 2.7 * 0.9 - (u + 5) / 2.7 * 0.3 + dth * 0.35;
+      c = ramp[clamp(Math.round(2 + lit * 1.8), 0, 4)];
+    }
+    // beak, long and slightly curved, angled down toward the quay
+    const kd = Math.min(segD(u, v, -7.4, -8.3, -10.6, -5.6), segD(u, v, -10.6, -5.6, -13, -2.6));
+    if (kd < 0.55 - Math.max(0, -u - 8) * 0.05) c = beakC[v + u * 0.6 < -13.6 ? 2 : kd > 0.3 ? 0 : 1];
+    // eye with a glint
+    const ed = Math.hypot(u + 6.2, v + 9.1);
+    if (ed < 0.55) c = C('#0a0806');
+    if (Math.abs(u + 6.0) < 0.2 && Math.abs(v + 9.35) < 0.2) c = C('#d8d4e8');
+    if (c) px(x, y, c);
+  }
+  KIWI_DRAW = false;
+  // a soft uplight on the statue so it reads at night
+  glow(Anear, kx + 1, PT - 4, 34, 30, LAMP, 0.2, { bands: 4, pow: 1.4, mask: (x, y, p) => KIWIM[p] ? 1 : 0 });
+  glow(Anear, kx + 1, gy, 30, 5, LAMP, 0.18, { bands: 3, pow: 1.2, lm: LM, lmI: 0.2 });
+}
+function drawNearStreet() {
+  use(Lnear, Mnear);
+  for (let x = 0; x < W; x++) {
+    const joint = x % 26 === 0;
+    px(x, NQ, joint ? C('#262a3c') : C('#4a5274')); px(x, NQ + 1, joint ? C('#1e2130') : C('#353a52'));
+    px(x, NQ + 2, joint ? C('#1e2130') : C('#2c3046')); px(x, NQ + 3, C('#13151e'));
+    SPEC[NQ * W + x] = joint ? 0 : 1;
+  }
+  // klinker bricks in foreshortened rows: thin near the canal, deeper toward the viewer
+  const HI = C('#3c4668'), BLACK = C('#05060a');
+  const bricks = ['#20243a', '#252a42', '#1c2034', '#2a2e46', '#23273d', '#2c2234', '#262032'].map(C);
+  let y = NQ + 4, row = 0;
+  while (y < H) {
+    const rh = 2 + Math.floor(row / 5), bw = Math.round(rh * 2.8), off = Math.floor(h2(row, 5) * bw);
+    for (let sx = -bw - off; sx < W; sx += bw) {
+      const base = bricks[Math.floor(h2(sx * 3 + 7, row) * bricks.length)];
+      const wet = vnoise((sx + bw / 2) * 0.03, row * 0.35, 8) > 0.58, shine = h2(sx, row + 90) < (wet ? 0.8 : 0.35);
+      const gapC = mix(base, BLACK, 0.45);
+      for (let j = 0; j < rh; j++) for (let i = 0; i < bw; i++) {
+        const X = sx + i, Y = y + j;
+        if (Y >= H || X < 0 || X >= W) continue;
+        let c = wet ? mix(base, HI, 0.18) : base, spec = 0;
+        if (i === bw - 1 || (rh >= 3 && j === rh - 1)) c = gapC;
+        else if (j === 0 && shine && i > 0 && i < bw - 2) { c = mix(base, HI, wet ? 0.7 : 0.45); spec = 1; }
+        px(X, Y, c);
+        SPEC[Y * W + X] = spec;
+      }
+    }
+    y += rh; row++;
+  }
+}
+function drawPuddles() {
+  use(Lnear, Mnear);
+  for (const P of PUDDLES) {
+    for (let y = Math.floor(P.y - P.ry - 2); y <= P.y + P.ry + 2; y++) for (let x = Math.floor(P.x - P.rx - 3); x <= P.x + P.rx + 3; x++) {
+      if (x < 0 || x >= W || y >= H) continue;
+      const dx = (x + 0.5 - P.x) / P.rx, dy = (y + 0.5 - P.y) / P.ry;
+      if (dx * dx + dy * dy > 1 + (vnoise(x * 0.2, y * 0.5, 4) - 0.5) * 0.6) continue;
+      const t = (dy + 1) / 2;
+      let c = mix(C('#2a3562'), C('#10152c'), clamp(t + (bay(x, y) - 0.5) * 0.3, 0, 1));
+      if (dy < -0.6) c = C('#3a4676');
+      if (dy > 0.75) c = C('#0a0d1a');
+      if (P.lamp) {
+        const d = Math.abs(x - P.lamp);
+        if (d <= 1 && y % 2 === 0) c = mix(C('#ffd690'), C('#b87a44'), clamp(t, 0, 1));
+        else if (d <= 3 && y % 2 === 1) c = C('#6a4a38');
+      }
+      if (P.bridge && BULBS.some(([bx]) => bx === x) && y % 2 === 0 && dy < 0.6) c = C('#a07048');
+      px(x, y, c, 1);
+      PM[y * W + x] = 1;
+      SPEC[y * W + x] = 0;
+    }
+  }
+}
+function drawGroundLeaves() {
+  use(Lnear, Mnear);
+  const R = rng(55);
+  for (let i = 0; i < 320; i++) {
+    const r = R();
+    let x, y;
+    if (r < 0.35) { x = R() * 150; y = 318 + R() * 42; }
+    else if (r < 0.6) { x = R() * W; y = NQ + 4 + R() * 5; }
+    else { x = R() * W; y = NQ + 7 + R() * 56; }
+    const ramp = RAMPS[pickHue(R())], lamp = lumA(Anear, x, y);
+    const idx = clamp(Math.round(1.6 + lamp * 3.2 + R() * 0.8), 1, 5);
+    const flip = R() < 0.5 ? 1 : -1;
+    px(x, y, ramp[idx], 1); px(x + flip, y, ramp[idx - 1], 1);
+    if (R() < 0.5) px(x + flip, y - 1, ramp[idx], 1);
+    if (R() < 0.3) px(x - flip, y + 1, ramp[idx - 1], 1);
+  }
+}
+function drawNearBollard(x, gy) {
+  use(Lnear, Mnear);
+  const c = C('#3a1a1e'), cD = C('#26121a'), cL = C('#5a2a2c');
+  for (let y = gy - 14; y <= gy; y++) for (let i = 0; i < 5; i++) px(x + i, y, i === 0 ? cD : i >= 3 ? cL : c);
+  rect(x + 1, gy - 16, 3, 2, c); px(x + 3, gy - 16, cL); rect(x - 1, gy - 12, 7, 1, cD);
+  for (const yy of [gy - 9, gy - 6, gy - 3]) { px(x + 1, yy, C('#8a5a50')); px(x + 3, yy, C('#8a5a50')); px(x + 2, yy + 1, C('#8a5a50')); }
+}
+function drawNearLamp(x, pixelsOnly) {
+  use(Lnear, Mnear);
+  const p = C('#121a1e'), pL = C('#27324a'), pW = C('#3a3a3a');
+  for (let y = 336; y <= 344; y++) { const hw = y >= 342 ? 6 : y >= 339 ? 4 : 3; for (let i = -hw; i <= hw; i++) px(x + i, y, i >= hw - 1 ? pL : p); }
+  for (let y = 226; y < 336; y++) { px(x - 1, y, p); px(x, y, p); px(x + 1, y, pL); }
+  for (const ry of [262, 300, 332]) rect(x - 2, ry, 5, 2, ry === 332 ? pL : p);
+  for (let i = -8; i <= 8; i++) px(x + i, 230, p);
+  px(x - 8, 231, p); px(x + 8, 231, p);
+  for (let y = 222; y <= 225; y++) { const hw = 4 - (y - 222); for (let i = -hw; i <= hw; i++) px(x + i, y, p); }
+  for (let y = 210; y <= 221; y++) for (let i = -5; i <= 5; i++) {
+    const edge = i === -5 || i === 5 || i === 0;
+    const d = Math.abs(i) + Math.abs(y - 215.5) * 0.4;
+    px(x + i, y, edge ? pW : d < 2 ? C('#fff6d8') : d < 4 ? C('#ffe3a0') : C('#ffc870'), edge ? 0 : 1);
+  }
+  for (let y = 204; y <= 209; y++) { const hw = 1 + (y - 204); for (let i = -hw; i <= hw; i++) px(x + i, y, y === 209 ? C('#3a2a22') : i < 0 ? pL : p); }
+  px(x, 203, p); px(x, 202, p); px(x, 201, pL);
+  // surface light: ground pool + general falloff
+  if (pixelsOnly) return;
+  glow(Anear, x + 0.5, 346, 132, 20, LAMP, 0.6, { bands: 6, pow: 1.3 });
+  glow(Anear, x + 0.5, NL.y + 40, 150, 150, LAMP, 0.5, { bands: 6, pow: 1.8 });
+}
+function drawBike(bx, gy, dir, frameC, seed) {
+  use(Lnear, Mnear);
+  const Lb = 36;
+  const P = (dx, dy) => [dir > 0 ? bx + dx : bx + Lb - dx, gy - dy];
+  const tire = C('#07080c'), rim = C('#3b4258'), spoke = C('#262a3a');
+  const frameL = mix(frameC, C('#8a92b0'), 0.35);
+  const L = (a, b, c = frameC) => line(...P(...a), ...P(...b), c);
+  for (const hx of [9, 27]) {
+    const [wx, wy] = P(hx, 8.5);
+    for (let s = 0; s < 8; s++) { const a = s / 8 * TAU + 0.3; line(wx, wy, wx + Math.cos(a) * 7, wy + Math.sin(a) * 7, spoke); }
+    for (let a = 0; a < 72; a++) {
+      const an = a / 72 * TAU;
+      px(wx + Math.cos(an) * 8.5, wy + Math.sin(an) * 8.5, tire);
+      px(wx + Math.cos(an) * 7.4, wy + Math.sin(an) * 7.4, rim);
+    }
+    for (let a = 0; a < 30; a++) { const an = Math.PI + a / 30 * Math.PI; px(wx + Math.cos(an) * 9.6, wy + Math.sin(an) * 9.6, frameC); }
+    px(wx, wy, rim);
+  }
+  L([9, 8.5], [15, 8]); L([15, 8], [12, 20]); L([9, 8.5], [12, 18]);
+  L([15, 8], [20, 11]); L([20, 11], [25, 17]); L([15, 9], [20, 12]);
+  L([25, 17], [25, 23], frameL); L([25, 17], [27, 8.5]);
+  L([25, 23], [21, 24], C('#1a1c24')); L([21, 24], [20, 23], C('#2a2a30'));
+  for (let i = 0; i < 9; i++) L([8 + i, 10], [8 + i, 7], C('#0c0d12'));
+  L([10, 22], [14, 22], C('#2e1c1a')); L([10, 21], [14, 21], C('#3e2a24'));
+  L([2, 18], [13, 18], frameL); L([3, 18], [9, 9]);
+  for (let yy = 19; yy <= 25; yy++) L([27, yy], [35, yy], yy % 2 ? C('#4a3528') : C('#34261e'));
+  const R = rng(seed);
+  for (let i = 0; i < 6; i++) { const [lx, ly] = P(28 + R() * 7, 25 + R() * 2); px(lx, ly, RAMPS[pickHue(R())][3 + Math.floor(R() * 2)], 1); }
+  L([15, 8], [17, 1], C('#15161c'));
+  const [fx, fy] = P(28, 20); px(fx, fy, C('#c8c0a0'));
+}
+function drawElm() {
+  use(Lnear, Mnear);
+  const R = rng(77);
+  const dark = C('#130f18'), mid = C('#1d1822'), lite = C('#29232e'), rim = C('#37405a');
+  for (let y = H - 1; y >= 96; y--) {
+    const t = (y - 96) / (H - 96), cx = 30 + (1 - t) * 6, hw = 7.5 + 11 * t * t * t;
+    for (let x = Math.floor(cx - hw); x <= Math.ceil(cx + hw); x++) {
+      const u = (x - (cx - hw)) / (2 * hw);
+      let c = u < 0.25 ? dark : u > 0.84 ? rim : u > 0.7 ? lite : mid;
+      if (h2(x * 3, Math.floor(y / 4)) < 0.3 && u > 0.1 && u < 0.84) c = dark;
+      if (h2(x, y) < 0.02) c = lite;
+      px(x, y, c);
+    }
+  }
+  const bark = [dark, mid, lite], clusters = [];
+  const branch = (x, y, ang, len, th, depth) => {
+    const x2 = x + Math.cos(ang) * len, y2 = y + Math.sin(ang) * len;
+    limb(x, y, x2, y2, th, th * 0.7, bark);
+    if (depth === 0 || th < 1.2) { clusters.push([x2, y2, 12 + R() * 9]); return; }
+    const n = 2 + (R() < 0.4 ? 1 : 0);
+    for (let i = 0; i < n; i++) branch(x2, y2, ang + (R() - 0.5) * 1.3, len * (0.62 + R() * 0.2), th * 0.68, depth - 1);
+    if (depth < 3 && R() < 0.7) clusters.push([(x + x2) / 2, (y + y2) / 2, 9 + R() * 7]);
+  };
+  branch(34, 104, -1.95, 50, 8, 4);
+  branch(37, 108, -0.95, 64, 7, 4);
+  branch(38, 128, -0.3, 76, 6, 3);
+  clusters.push([168, 134, 13], [204, 128, 12], [142, 148, 10], [226, 112, 11], [186, 146, 9], [120, 128, 12]);
+  // fill the top-left corner so the canopy frames the scene as one mass
+  clusters.push([6, 8, 24], [44, -2, 24], [86, 6, 22], [128, -4, 22], [168, 8, 18], [-6, 46, 22], [30, 40, 18],
+    [70, 34, 18], [110, 36, 18], [150, 44, 16], [196, 34, 15], [4, 84, 16], [60, 76, 16], [100, 80, 16], [140, 90, 15]);
+  const lightAt = (x, y, nx, ny) => {
+    const lx = NL.x - x, ly = NL.y - y, ld = Math.hypot(lx, ly) || 1;
+    const fall = Math.pow(Math.max(0, 1 - ld / 230), 1.5), facing = Math.max(0, (nx * lx + ny * ly) / ld);
+    return fall * (0.3 + facing) * 1.7;
+  };
+  clusters.sort((a, b) => a[1] - b[1]);
+  CUR_TREE = 1;
+  for (const [cx, cy, r] of clusters) {
+    const hue = pickHue(R());
+    leafBlob(cx, cy, r, hue, lightAt, Math.floor(cx * 7 + cy), 0.14, 1.55);
+    if (cy < 160) NEAR_LEAF_SRC.push([cx, cy, r, hue]);
+  }
+  CUR_TREE = 0;
+}
+
+/* ============================================================
+   BUILD THE STATIC SCENE
+   ============================================================ */
+drawSkyline();
+OWN_ID = HOUSES.length + 2; drawTower(); OWN_ID = 0;   // the Westertoren opens the personal "about me" card
+const TOWER_L = Lback.slice(0, W * ST * 4), TOWER_OWN = OWN.slice(0, W * ST);   // whole tower, before the side canal hides its base
+drawSideCanal();
+HOUSES.forEach((h, i) => { OWN_ID = i + 1; drawHouse(h, i); OWN_ID = 0; });
+drawFarStreet();
+drawBridge();
+for (const lx of FAR_LAMPS) if (lx !== FAULTY_LAMP) farLampGlow(lx, Afar, LM);
+FAR_TREES.forEach(drawFarTree);
+FAR_LAMPS.forEach(drawFarLamp);
+for (const [bx, d] of FAR_BIKES) drawSmallBike(bx, d, Lfront, Mfront);
+drawBollards();
+drawBridgeRail();
+drawCafeTerrace();
+const L0 = Lback.slice();          // facade colours before lighting, for window-switch deltas
+applyA(Lback, Mback, Afar);
+applyA(Lfront, Mfront, Afar);
+// each static window's glow on the facade, as an exact delta that can be added or removed
+for (const win of WINDOWS) {
+  if (win.dyn) continue;
+  const cx = win.x + win.w / 2, cy = win.y + win.h / 2;
+  glow(TMP, cx, cy, win.w * 0.9 + 3, win.h * 0.6 + 3, WINL, win.hI, { bands: 3, pow: 1.6 });
+  glow(TMP, cx, win.y + win.h + 1, win.w * 0.7, 3, WINL, win.hI, { bands: 2, pow: 1 });
+  const x0 = Math.max(0, Math.floor(cx - win.w - 4)), x1 = Math.min(W - 1, Math.ceil(cx + win.w + 4));
+  const y0 = Math.max(0, Math.floor(cy - win.h - 4)), y1 = Math.min(H - 1, Math.ceil(win.y + win.h + 5));
+  const idx = [], dr = [], dg = [], db = [];
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+    const p = y * W + x, a = p * 3, r = TMP[a], g = TMP[a + 1], b = TMP[a + 2];
+    TMP[a] = TMP[a + 1] = TMP[a + 2] = 0;
+    if (r + g + b < 0.5 || Mback[p] || !L0[p * 4 + 3]) continue;
+    const i = p * 4;
+    idx.push(i); dr.push(r * (0.55 + L0[i] * 0.0035)); dg.push(g * (0.55 + L0[i + 1] * 0.0035)); db.push(b * (0.55 + L0[i + 2] * 0.0035));
+  }
+  win.halo = { n: idx.length, idx: new Int32Array(idx), r: new Float32Array(dr), g: new Float32Array(dg), b: new Float32Array(db) };
+}
+
+// sky pixels: everything the static layers leave uncovered
+const skyMask = new Uint8Array(N);
+for (let p = 0; p < N; p++) if (!Lback[p * 4 + 3]) skyMask[p] = 1;
+
+drawBoat();
+for (const lx of NEAR_LAMPS) drawNearLamp(lx);
+drawNearStreet();
+drawPuddles();
+drawGroundLeaves();
+drawNearBollard(238, 312); drawNearBollard(452, 309); drawNearBollard(628, 316);
+drawBike(136, 348, 1, C('#1a3236'), 3);
+drawBike(512, 340, 1, C('#101219'), 4);
+drawBike(556, 347, -1, C('#4a1e24'), 5);
+for (const lx of NEAR_LAMPS) drawNearLamp(lx, true);   // redraw so posts sit in front of street and bikes
+drawKiwi(484, 318);
+drawElm();
+applyA(Lboat, Mboat, Anear);
+applyA(Lnear, Mnear, Anear);
+for (let p = 0; p < N; p++) if (SPEC[p] && Lnear[p * 4 + 3]) {   // wet glints on cobbles
+  const a = p * 3, i = p * 4;
+  Lnear[i] += Anear[a] * 0.55; Lnear[i + 1] += Anear[a + 1] * 0.45; Lnear[i + 2] += Anear[a + 2] * 0.3 + 6;
+}
+
+// sky: precompute per-pixel base colour, dither and moon terms
+const skyIdx = [];
+for (let p = 0; p < N; p++) if (skyMask[p] && !Lfront[p * 4 + 3] && !Lboat[p * 4 + 3] && !Lnear[p * 4 + 3]) skyIdx.push(p);
+const SKN = skyIdx.length;
+const SKP = new Int32Array(skyIdx), SKX = new Int16Array(SKN), SKY = new Int16Array(SKN), SKB = new Float32Array(SKN);
+const SKR = new Uint8Array(SKN), SKG = new Uint8Array(SKN), SKBl = new Uint8Array(SKN), SKM = new Float32Array(SKN);
+const SKMD = new Int32Array(SKN).fill(-1);
+for (let j = 0; j < SKN; j++) {
+  const p = SKP[j], x = p % W, y = (p / W) | 0;
+  SKX[j] = x; SKY[j] = y; SKB[j] = bay(x, y);
+  const d = Math.hypot(x + 0.5 - MOON.x, y + 0.5 - MOON.y);
+  const mg = Math.pow(Math.max(0, 1 - d / 70), 2);
+  SKM[j] = mg;
+  let c = skyBase(x, y);
+  const halo = Math.floor(mg * 5 + SKB[j]) / 5;
+  c = mix(c, C('#3a4480'), halo * 0.55);
+  SKR[j] = c[0]; SKG[j] = c[1]; SKBl[j] = c[2];
+  if (d < MOON.r) {
+    const crater = h2(x, y) < 0.18 || (x - MOON.x) + (y - MOON.y) > 5;
+    const mc = crater ? C('#b8c2e8') : C('#e4eaff');
+    SKMD[j] = (mc[0] << 16) | (mc[1] << 8) | mc[2];
+  }
+}
+// fill sky pixels of the back layer so the frame base is opaque
+for (let p = 0; p < N; p++) if (skyMask[p]) { const c = skyBase(p % W, (p / W) | 0), i = p * 4; Lback[i] = c[0]; Lback[i + 1] = c[1]; Lback[i + 2] = c[2]; Lback[i + 3] = 255; }
+
+// opaque pixel lists for fast compositing
+const listOf = L => { const a = []; for (let p = 0; p < N; p++) if (L[p * 4 + 3]) a.push(p); return new Int32Array(a); };
+const IDX_FRONT = listOf(Lfront), IDX_BOAT = listOf(Lboat), IDX_NEAR = listOf(Lnear);
+const U_FRONT = new Uint32Array(Lfront.buffer), U_BOAT = new Uint32Array(Lboat.buffer), U_NEAR = new Uint32Array(Lnear.buffer);
+// the bridge's near face, redrawn over passers-by so they cross behind the parapet
+const IDX_BRIDGE = (() => {
+  const a = [];
+  for (let x = BX0; x <= BX1; x++) for (let y = Math.round(deckY(x)); y < WL; y++) a.push(y * W + x);
+  return new Int32Array(a);
+})();
+const U_BACK = new Uint32Array(Lback.buffer);
+
+// per house: its visible pixels, its visible outline, a cut-out snapshot for the project card, and its windows
+const HOUSE_PIX = HOUSES.map((h, hi) => {
+  const id = hi + 1, body = [], edge = [];
+  let x0 = W, y0 = H, x1 = -1, y1 = -1;
+  for (let p = 0; p < N; p++) {
+    if (OWN[p] !== id) continue;
+    const x = p % W, y = (p / W) | 0;
+    if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+    const i = p << 2;
+    if (Lfront[i + 3] || Lboat[i + 3] || Lnear[i + 3]) continue;
+    body.push(i);
+    if (x === 0 || x === W - 1 || OWN[p - 1] !== id || OWN[p + 1] !== id || OWN[p - W] !== id || OWN[p + W] !== id) edge.push(i);
+  }
+  const snap = document.createElement('canvas');
+  snap.width = x1 - x0 + 1; snap.height = y1 - y0 + 1;
+  const sd = new ImageData(snap.width, snap.height);
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+    const p = y * W + x;
+    if (OWN[p] !== id) continue;
+    const i = p << 2, o = ((y - y0) * snap.width + (x - x0)) << 2;
+    sd.data[o] = Lback[i]; sd.data[o + 1] = Lback[i + 1]; sd.data[o + 2] = Lback[i + 2]; sd.data[o + 3] = 255;
+  }
+  const wins = WINDOWS.filter(w => OWN[Math.floor(w.y + w.h / 2) * W + Math.floor(w.x + w.w / 2)] === id);
+  const s32 = new Uint32Array(sd.data.buffer);   // the card shows the house with every light on, as it is while open
+  for (const w of wins) for (let j = 0; j < w.glass.length; j++) {
+    const p = w.glass[j], x = p % W;
+    if (x >= x0) s32[((p / W | 0) - y0) * snap.width + (x - x0)] = w.litC[j];
+  }
+  snap.getContext('2d').putImageData(sd, 0, 0);
+  return { body: new Int32Array(body), edge: new Int32Array(edge), snap, wins, cx: (x0 + x1) / 2, top: y0 };
+});
+// the houseboat is the "about me" card: same outline, hover sign and cut-out snapshot as a house
+const BOAT_I = HOUSES.length;
+HOUSE_PIX.push((() => {
+  const body = [], edge = [], has = p => p >= 0 && p < N && Lboat[(p << 2) + 3];
+  let x0 = W, y0 = H, x1 = -1, y1 = -1;
+  for (let p = 0; p < N; p++) {
+    if (!has(p)) continue;
+    const x = p % W, y = (p / W) | 0, i = p << 2;
+    if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+    if (Lnear[i + 3]) continue;
+    body.push(i);
+    if (!has(p - 1) || !has(p + 1) || !has(p - W) || !has(p + W)) edge.push(i);
+  }
+  const snap = document.createElement('canvas');
+  snap.width = x1 - x0 + 1; snap.height = y1 - y0 + 1;
+  const sd = new ImageData(snap.width, snap.height);
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+    const i = (y * W + x) << 2, o = ((y - y0) * snap.width + (x - x0)) << 2;
+    if (!Lboat[i + 3]) continue;
+    sd.data[o] = Lboat[i]; sd.data[o + 1] = Lboat[i + 1]; sd.data[o + 2] = Lboat[i + 2]; sd.data[o + 3] = 255;
+  }
+  snap.getContext('2d').putImageData(sd, 0, 0);
+  return { body: new Int32Array(body), edge: new Int32Array(edge), snap, wins: [], cx: (BOAT.cab0 + BOAT.cab1) / 2, top: y0 };
+})());
+// the Westertoren: outline what is visible now, but snapshot the whole tower as first drawn
+const TOWER_I = HOUSES.length + 1;
+HOUSE_PIX.push((() => {
+  const id = TOWER_I + 1, body = [], edge = [];
+  let x0 = W, y0 = H, x1 = -1, y1 = -1;
+  for (let p = 0; p < TOWER_OWN.length; p++) {
+    if (TOWER_OWN[p] !== id) continue;
+    const x = p % W, y = (p / W) | 0;
+    if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+    if (OWN[p] !== id) continue;
+    const i = p << 2;
+    if (Lfront[i + 3] || Lboat[i + 3] || Lnear[i + 3]) continue;
+    body.push(i);
+    if (OWN[p - 1] !== id || OWN[p + 1] !== id || OWN[p - W] !== id || OWN[p + W] !== id) edge.push(i);
+  }
+  const snap = document.createElement('canvas');
+  snap.width = x1 - x0 + 1; snap.height = y1 - y0 + 1;
+  const sd = new ImageData(snap.width, snap.height);
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+    const p = y * W + x;
+    if (TOWER_OWN[p] !== id) continue;
+    const i = p << 2, o = ((y - y0) * snap.width + (x - x0)) << 2;
+    sd.data[o] = TOWER_L[i]; sd.data[o + 1] = TOWER_L[i + 1]; sd.data[o + 2] = TOWER_L[i + 2]; sd.data[o + 3] = 255;
+  }
+  snap.getContext('2d').putImageData(sd, 0, 0);
+  return { body: new Int32Array(body), edge: new Int32Array(edge), snap, wins: [], cx: (x0 + x1) / 2, top: y0 };
+})());
+
+// the kiwi: lives on the near layer, so it uses its own mask
+const KIWI_I = HOUSES.length + 2;
+let KIWI_BOX;
+HOUSE_PIX.push((() => {
+  const body = [], edge = [];
+  let x0 = W, y0 = H, x1 = -1, y1 = -1;
+  for (let p = 0; p < N; p++) {
+    if (!KIWIM[p]) continue;
+    const x = p % W, y = (p / W) | 0;
+    if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+    body.push(p << 2);
+    if (!KIWIM[p - 1] || !KIWIM[p + 1] || !KIWIM[p - W] || !KIWIM[p + W]) edge.push(p << 2);
+  }
+  KIWI_BOX = { x0, y0, x1, y1 };
+  const snap = document.createElement('canvas');
+  snap.width = x1 - x0 + 1; snap.height = y1 - y0 + 1;
+  const sd = new ImageData(snap.width, snap.height);
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+    const p = y * W + x;
+    if (!KIWIM[p]) continue;
+    const i = p << 2, o = ((y - y0) * snap.width + (x - x0)) << 2;
+    sd.data[o] = Lnear[i]; sd.data[o + 1] = Lnear[i + 1]; sd.data[o + 2] = Lnear[i + 2]; sd.data[o + 3] = 255;
+  }
+  snap.getContext('2d').putImageData(sd, 0, 0);
+  return { body: new Int32Array(body), edge: new Int32Array(edge), snap, wins: [], cx: (x0 + x1) / 2, top: y0 };
+})());
+
+const HALO_SPR = tmpSprite(false, A => {
+  for (const lx of NEAR_LAMPS) {
+    glow(A, lx + 0.5, NL.y, 74, 66, LAMP, 0.36, { bands: 6, pow: 1.8, lm: LM, lmI: 1.0 });
+    glow(A, lx + 0.5, NL.y, 22, 20, LAMP, 0.45, { bands: 4, pow: 1.5, lm: LM, lmI: 0.8 });
+  }
+});
+const haloK = t => 0.96 + 0.04 * tn(t, 0.8, 31);
+
+// vignette
+const VIG_IDX = [], VIG_F = [];
+for (let p = 0; p < N; p++) {
+  const x = p % W, y = (p / W) | 0, dx = (x + 0.5) / W - 0.5, dy = (y + 0.5) / H - 0.5;
+  const v = 1 - 0.42 * sstep(0.34, 0.78, Math.sqrt(dx * dx * 1.1 + dy * dy * 1.6) * 1.25);
+  if (v < 0.995) { VIG_IDX.push(p << 2); VIG_F.push(v); }
+}
+const VIGI = new Int32Array(VIG_IDX), VIGF = new Float32Array(VIG_F);
+
+/* ============================================================
+   FRAME BUFFER & PERIODIC PARTICLES
+   Each particle i repeats k_i times per loop; per-cycle variety
+   comes from hashing (cycle mod k_i), so every loop is identical.
+   ============================================================ */
+const img = new ImageData(W, H), F = img.data, F32 = new Uint32Array(F.buffer);
+function drawSprite(s, k) {
+  if (k <= 0.004) return;
+  const { n, idx, r, g, b } = s;
+  if (s.emit) for (let j = 0; j < n; j++) { const i = idx[j]; F[i] += r[j] * k; F[i + 1] += g[j] * k; F[i + 2] += b[j] * k; }
+  else for (let j = 0; j < n; j++) {
+    const i = idx[j], R = F[i], G = F[i + 1], B = F[i + 2];
+    F[i] = R + r[j] * k * (0.55 + R * 0.0035); F[i + 1] = G + g[j] * k * (0.55 + G * 0.0035); F[i + 2] = B + b[j] * k * (0.55 + B * 0.0035);
+  }
+}
+function stage(name, t) { for (const d of DYN) if (d.stage === name) drawSprite(d.s, d.k(t)); }
+function composite(idx, U) { for (let j = 0, n = idx.length; j < n; j++) { const p = idx[j]; F32[p] = U[p]; } }
+function fpx(x, y, r, g, b, a = 1) {
+  x = Math.floor(x); y = Math.floor(y);
+  if (x < 0 || y < 0 || x >= W || y >= H) return;
+  const i = (y * W + x) << 2;
+  if (a >= 1) { F[i] = r; F[i + 1] = g; F[i + 2] = b; }
+  else { F[i] += (r - F[i]) * a; F[i + 1] += (g - F[i + 1]) * a; F[i + 2] += (b - F[i + 2]) * a; }
+}
+function fadd(x, y, r, g, b) {
+  x = Math.floor(x); y = Math.floor(y);
+  if (x < 0 || y < 0 || x >= W || y >= H) return;
+  const i = (y * W + x) << 2;
+  F[i] += r; F[i + 1] += g; F[i + 2] += b;
+}
+const lightAtF = (x, y) => {
+  x = Math.floor(x); y = Math.floor(y);
+  if (x < 0 || y < 0 || x >= W || y >= H) return 0;
+  return LM[y * W + x];
+};
+function particles(n, seed, periodMin, periodMax, extra) {
+  const R = rng(seed), arr = [];
+  for (let i = 0; i < n; i++) {
+    const k = Math.max(1, Math.round(LOOP / (periodMin + R() * (periodMax - periodMin))));
+    arr.push(Object.assign({ k, p: R(), seed: seed * 1000 + i }, extra ? extra(R, i) : null));
+  }
+  return arr;
+}
+// phase of particle q at time t -> sets q.c (cycle id), q.f (0..1), q.T (period)
+function phase(q, t) {
+  const u = t * q.k / LOOP + q.p, c = Math.floor(u);
+  q.f = u - c; q.c = ((c % q.k) + q.k) % q.k; q.T = LOOP / q.k;
+}
+
+/* ---------- sky ---------- */
+function drawSky(t) {
+  const w2 = t / LOOP, w1 = 1 - w2, nrm = 1 / Math.sqrt(w1 * w1 + w2 * w2);
+  const o1 = Math.floor(CLOUD_V * t), o2 = Math.floor(CLOUD_V * (t - LOOP));
+  for (let j = 0; j < SKN; j++) {
+    const x = SKX[j], y = SKY[j], row = y * CW;
+    const n = ((CT[row + ((x - o1) & 1023)] - 0.5) * w1 + (CT[row + ((x - o2) & 1023)] - 0.5) * w2) * nrm + 0.5;
+    let lv = Math.floor((n - CLOUD_THR[y]) * 9 + SKB[j]);
+    lv = lv < 0 ? 0 : lv > 4 ? 4 : lv;
+    let r, g, b;
+    if (lv === 0) { r = SKR[j]; g = SKG[j]; b = SKBl[j]; }
+    else {
+      const o = (y * 5 + lv) * 3, mg = SKM[j] * (lv < 3 ? 1.6 : 0.8);
+      r = CCOL[o] + mg * 80; g = CCOL[o + 1] + mg * 92; b = CCOL[o + 2] + mg * 120;
+    }
+    const md = SKMD[j];
+    if (md >= 0 && lv < 3) {
+      const a = lv === 0 ? 1 : lv === 1 ? 0.6 : 0.22;
+      r += ((md >> 16) - r) * a; g += (((md >> 8) & 255) - g) * a; b += ((md & 255) - b) * a;
+    }
+    const i = SKP[j] << 2;
+    F[i] = r; F[i + 1] = g; F[i + 2] = b;
+  }
+}
+
+/* ---------- canal: rippled reflection of everything above ---------- */
+const WBR = [], WBG = [], WBB = [];
+for (let y = WL; y < NQ; y++) { const c = mix(C('#111a36'), C('#0a0f22'), (y - WL) / (NQ - WL)); WBR.push(c[0]); WBG.push(c[1]); WBB.push(c[2]); }
+function drawWater(t) {
+  const pA = TAU * 38 * t / LOOP, pB = TAU * 23 * t / LOOP, pC = TAU * 17 * t / LOOP;
+  for (let y = WL; y < NQ; y++) {
+    const dy = y - WL, dep = dy / (NQ - WL), amp = 0.5 + dep * 3.4, srcBase = WL - 1 - dy * 1.12;
+    const refl = 0.64 - dep * 0.22, rowPh = y * 0.93 + pA, vj = 0.4 + dep * 1.6;
+    const wr = WBR[dy], wg = WBG[dy], wb = WBB[dy];
+    for (let x = 0; x < W; x++) {
+      const wob = SIN(x * 0.043 + pB + y * 0.21);
+      let sx = x + Math.round(amp * SIN(rowPh + wob * 1.8));
+      sx = sx < 0 ? 0 : sx >= W ? W - 1 : sx;
+      let sy = Math.round(srcBase + SIN(x * 0.29 - pB + y * 0.61) * vj);
+      sy = sy > WL - 1 ? WL - 1 : sy < 0 ? 0 : sy;
+      const si = (sy * W + sx) << 2, r = F[si], g = F[si + 1], b = F[si + 2];
+      const lum = (r * 0.3 + g * 0.55 + b * 0.15) / 255;
+      let k = refl + lum * lum * 0.4;
+      if (dy > 3 && SIN(y * 1.7 - pC + SIN(x * 0.021 + pB) * 2.2) > 0.84) k *= 0.45;
+      const o = (y * W + x) << 2;
+      F[o] = wr + r * k * 0.86; F[o + 1] = wg + g * k * 0.9; F[o + 2] = wb + b * k;
+    }
+  }
+}
+// rain density (R key): particles are allocated for the heaviest setting, lighter settings draw a prefix
+const RAIN_MAX = 1.8;
+let RAIN_F = 1;
+const rainCount = n => Math.round(n / RAIN_MAX * RAIN_F);
+const RIPPLES = particles(Math.round(95 * RAIN_MAX), 11, 1.2, 3.4);
+function drawRipples(t) {
+  for (let j = 0, n = rainCount(RIPPLES.length); j < n; j++) {
+    const q = RIPPLES[j];
+    phase(q, t);
+    const age = q.f * q.T;
+    if (age > 0.9) continue;
+    const x = h2(q.seed, q.c) * W, y = WL + 3 + h2(q.seed + 7, q.c) * (NQ - WL - 6), dep = (y - WL) / (NQ - WL);
+    const a = 1 - age / 0.9, rx = (1 + age * 7) * (0.6 + 0.7 * dep), ry = rx * 0.3;
+    if (age < 0.06) { fadd(x, y - 1, 60, 70, 90); continue; }
+    const n = Math.max(8, Math.round(rx * 5));
+    for (let s = 0; s < n; s++) {
+      const an = s / n * TAU, X = Math.floor(x + Math.cos(an) * rx), Y = Math.floor(y + Math.sin(an) * ry);
+      if (X < 0 || X >= W || Y < WL || Y >= NQ) continue;
+      const i = (Y * W + X) << 2;
+      F[i] += (14 + F[i] * 0.4) * a; F[i + 1] += (18 + F[i + 1] * 0.4) * a; F[i + 2] += (28 + F[i + 2] * 0.4) * a;
+    }
+  }
+}
+function drawBoatReflection(t) {
+  const pB = TAU * 23 * t / LOOP;
+  for (let y = BOAT.bot + 1; y < NQ; y++) for (let x = BOAT.x0 + 4; x <= BOAT.x1 - 2; x++) {
+    const sy = BOAT.bot - (y - BOAT.bot) - 1, sx = clamp(x + Math.round(SIN(x * 0.2 + pB + y) * 1.2), 0, W - 1);
+    const si = (sy * W + sx) << 2, o = (y * W + x) << 2;
+    F[o] = F[o] * 0.5 + F[si] * 0.4; F[o + 1] = F[o + 1] * 0.5 + F[si + 1] * 0.4; F[o + 2] = F[o + 2] * 0.5 + F[si + 2] * 0.45;
+  }
+}
+
+/* ---------- rain ---------- */
+function rainLayer(n, len, speed, alpha, seed) {
+  const R = rng(seed), span = H + len + 24, L = { n, len, alpha, seed, span, k: new Int32Array(n), p: new Float32Array(n) };
+  for (let i = 0; i < n; i++) { L.k[i] = Math.max(1, Math.round(LOOP * speed * (0.85 + 0.3 * R()) / span)); L.p[i] = R(); }
+  return L;
+}
+const RAIN_FAR = rainLayer(Math.round(330 * RAIN_MAX), 4, 170, 0.16, 101);
+const RAIN_MID = rainLayer(Math.round(210 * RAIN_MAX), 7, 290, 0.26, 202);
+const RAIN_NEAR = rainLayer(Math.round(70 * RAIN_MAX), 13, 470, 0.36, 303);
+function drawRain(L, t) {
+  const slope = 0.17 + 0.05 * Math.sin(TAU * 2 * t / LOOP), WW = W + 80;
+  for (let i = 0, n = rainCount(L.n); i < n; i++) {
+    const k = L.k[i], u = t * k / LOOP + L.p[i], c = Math.floor(u), f = u - c, cc = ((c % k) + k) % k;
+    const y = -L.len - 10 + f * L.span;
+    let x = h2(L.seed + i, cc) * WW + y * slope;
+    x = (x % WW) - 40;
+    const hx = Math.floor(x), hy = Math.floor(y);
+    const lm = Math.min(1, lightAtF(hx, hy) * 1.25);
+    const cr = 150 + 105 * lm, cg = 172 + 42 * lm, cb = 222 - 70 * lm, A = L.alpha * (1 + lm * 0.9);
+    for (let j = 0; j < L.len; j++) {
+      const yy = hy - j, xx = Math.floor(x - j * slope);
+      if (yy < 0 || yy >= H || xx < 0 || xx >= W) continue;
+      const a = A * (1 - j / L.len), o = (yy * W + xx) << 2;
+      F[o] += (cr - F[o]) * a; F[o + 1] += (cg - F[o + 1]) * a; F[o + 2] += (cb - F[o + 2]) * a;
+    }
+  }
+}
+const SPLASH = particles(Math.round(70 * RAIN_MAX), 21, 0.9, 2.2);
+const FAR_SPLASH = particles(Math.round(60 * RAIN_MAX), 22, 0.8, 2.0);
+function drawSplashes(t) {
+  for (let j = 0, n = rainCount(SPLASH.length); j < n; j++) {
+    const q = SPLASH[j];
+    phase(q, t);
+    const age = q.f * q.T;
+    if (age > 0.35) continue;
+    const x = Math.floor(h2(q.seed, q.c) * W), y = Math.floor(NQ + 5 + h2(q.seed + 1, q.c) * (H - NQ - 6));
+    const lm = Math.min(1, lightAtF(x, y)), cr = 170 + 80 * lm, cg = 185 + 30 * lm, cb = 225 - 60 * lm;
+    if (PM[y * W + x]) {
+      const rx = 1 + age * 11, a = 1 - age / 0.35;
+      for (let s = 0; s < 14; s++) { const an = s / 14 * TAU; fpx(x + Math.cos(an) * rx, y + Math.sin(an) * rx * 0.35, cr, cg, cb, 0.5 * a); }
+    } else if (age < 0.05) fpx(x, y, cr, cg, cb, 0.8);
+    else if (age < 0.25) {
+      const h = age * 22 - age * age * 70;
+      fpx(x - 1 - age * 10, y - h, cr, cg, cb, 0.6); fpx(x + 1 + age * 10, y - h, cr, cg, cb, 0.6);
+    }
+  }
+  for (let j = 0, n = rainCount(FAR_SPLASH.length); j < n; j++) {
+    const q = FAR_SPLASH[j];
+    phase(q, t);
+    if (q.f * q.T > 0.1) continue;
+    const r = h2(q.seed + 3, q.c), x = Math.floor(h2(q.seed, q.c) * W);
+    let y;
+    if (r < 0.5) y = ST + 1 + Math.floor(h2(q.seed + 5, q.c) * 7);
+    else if (r < 0.75) y = 222;
+    else { if (x < BOAT.cab0 - 2 || x > BOAT.cab1 + 2) continue; y = 249; }
+    fadd(x, y, 70, 80, 100);
+  }
+}
+
+/* ---------- falling leaves ---------- */
+const SHAPES = {
+  near: [[[1, 0, 0], [2, 0, 0], [0, 1, 0], [1, 1, 0], [2, 1, 1], [3, 1, 1], [1, 2, 1], [2, 2, 1]],
+         [[0, 0, 0], [1, 0, 0], [1, 1, 1], [2, 1, 1]], [[0, 0, 0], [1, 1, 1]], [[0, 0, 0], [0, 1, 1]]],
+  far: [[[0, 0, 0], [1, 0, 0], [1, 1, 1]], [[0, 0, 0], [1, 0, 1]], [[0, 0, 1]], [[0, 0, 0]]],
+};
+const LEAVES_NEAR = particles(52, 31, 18, 30, (R, i) => ({ wind: i >= 42 }));
+const LEAVES_FAR = particles(34, 32, 16, 26);
+const leafState = { vis: false };
+function leafAt(q, t, near) {
+  phase(q, t);
+  const s = leafState, tau = q.f * q.T, r = j => h3(q.seed, q.c, j);
+  s.vis = false;
+  let x0, y0, hue;
+  if (near) {
+    if (q.wind) { x0 = -12; y0 = 20 + r(1) * 200; hue = pickHue(r(2)); }
+    else { const src = NEAR_LEAF_SRC[Math.floor(r(1) * NEAR_LEAF_SRC.length)]; x0 = src[0] + (r(2) - 0.5) * src[2]; y0 = src[1] + (r(3) - 0.5) * src[2] * 0.8; hue = src[3]; }
+  } else {
+    const src = FAR_LEAF_SRC[Math.floor(r(1) * FAR_LEAF_SRC.length)];
+    x0 = src[0] + (r(2) - 0.5) * src[2]; y0 = src[1] + (r(3) - 0.5) * src[2]; hue = src[3];
+  }
+  const t0 = r(4) * 4, sT = tau - t0;
+  if (sT < 0) return s;
+  const vy = near ? 13 + r(5) * 10 : 7 + r(5) * 6, vx = near ? (q.wind ? 22 + r(6) * 16 : 6 + r(6) * 12) : 4 + r(6) * 8;
+  const A = near ? 3 + r(7) * 7 : 1.5 + r(7) * 3, w = 1.1 + r(8) * 1.4, ph = r(9) * TAU;
+  let yg, water = false;
+  if (near) yg = NQ + 6 + r(10) * 56;
+  else if (r(10) < 0.6) { yg = WL + 2 + r(11) * 16; water = true; } else yg = ST + 1 + r(11) * 7;
+  const sLand = (yg - y0) / vy;
+  s.hue = hue; s.near = near;
+  if (sT < sLand) {
+    s.x = x0 + vx * sT + A * (Math.sin(w * sT + ph) - Math.sin(ph));
+    s.y = y0 + vy * sT + A * 0.25 * Math.sin(2 * w * sT + ph);
+    const spin = Math.sin(w * 1.7 * sT + ph * 2);
+    s.shape = Math.abs(spin) > 0.66 ? 0 : Math.abs(spin) > 0.33 ? 1 : (r(12) < 0.5 ? 2 : 3);
+    s.flip = spin < 0; s.phase = 0; s.a = 1;
+  } else {
+    const rest = sT - sLand, restDur = near ? 5 + r(13) * 6 : 7 + r(13) * 6;
+    if (rest > restDur) return s;
+    s.x = x0 + vx * sLand + A * (Math.sin(w * sLand + ph) - Math.sin(ph));
+    s.y = yg;
+    if (water) { s.x += rest * (2 + r(14) * 2); s.y += Math.sin(rest * 1.3 + ph) * 0.6; }
+    s.shape = 1; s.flip = r(15) < 0.5; s.phase = water ? 2 : 1;
+    s.a = Math.min(1, (restDur - rest) / 2);
+  }
+  if (s.x < -6 || s.x > W + 6) return s;
+  s.vis = true;
+  return s;
+}
+function drawLeaf(s) {
+  if (s.a < 1 && h2(Math.floor(s.x) * 7, Math.floor(s.y)) > s.a) return;
+  const shapes = SHAPES[s.near ? 'near' : 'far'][s.shape], ramp = RAMPS[s.hue];
+  const lm = Math.min(1, lightAtF(s.x, s.y));
+  let li = s.near ? 4 : 3;
+  if (s.phase > 0) li -= 1;
+  li = clamp(li + Math.round(lm * 1.5), 1, 5);
+  const c0 = ramp[li], c1 = ramp[li - 1];
+  const bx = Math.floor(s.x), by = Math.floor(s.y);
+  for (const [dx, dy, tone] of shapes) {
+    const c = tone ? c1 : c0;
+    fpx(s.flip ? bx - dx : bx + dx, by + dy, c[0], c[1], c[2]);
+  }
+}
+function drawLeaves(list, t, near, want) {
+  for (const q of list) {
+    const s = leafAt(q, t, near);
+    if (!s.vis) continue;
+    if (want === 'float' ? s.phase !== 2 : s.phase === 2) continue;
+    drawLeaf(s);
+  }
+}
+
+/* ---------- stove-pipe embers, smoke ---------- */
+const SPARKS = particles(8, 42, 4, 9, R => ({ life: 0.25 + R() * 0.2 }));
+const SPARK_C = ['#fff6c0', '#ffd050', '#ff8a2a', '#d0401a'].map(C);
+function drawSparks(t) {
+  for (const q of SPARKS) {
+    phase(q, t);
+    if (q.f > q.life) continue;
+    const L = q.life * q.T, age = q.f * q.T, a = age / L, r = j => h3(q.seed, q.c, j);
+    const ox = BOAT.pipeX + 0.5, oy = 229;
+    const vy = 24 + r(2) * 30;
+    const y = oy - (vy * age - 5 * age * age);
+    const x = ox + (r(3) - 0.5) * 6 * age + (9 + r(4) * 8) * age * age * 0.6 + Math.sin(age * (5 + r(5) * 6) + r(6) * TAU) * (1.2 + r(7) * 2);
+    if (a > 0.7 && h2(q.seed, Math.floor(age * 22)) < 0.35) continue;
+    const c = SPARK_C[Math.min(3, Math.floor(a * 4))];
+    fpx(x, y, c[0], c[1], c[2]);
+    if (a < 0.45) { fadd(x - 1, y, 40, 20, 5); fadd(x + 1, y, 40, 20, 5); fadd(x, y + 1, 30, 14, 4); }
+  }
+}
+const SD = new Float32Array(N);
+const PLUMES = [];
+function addPlume(x, y, n, life, o) {
+  PLUMES.push(Object.assign({ x, y, puffs: particles(n, Math.floor(x * 3 + y), life * 0.85, life * 1.15, R => ({ ph: R() * TAU })) }, o));
+}
+function splat(x, y, r, d, bb) {
+  const x0 = Math.max(0, Math.floor(x - r)), x1 = Math.min(W - 1, Math.ceil(x + r));
+  const y0 = Math.max(0, Math.floor(y - r)), y1 = Math.min(H - 1, Math.ceil(y + r));
+  if (x0 > x1 || y0 > y1) return;
+  if (x0 < bb[0]) bb[0] = x0; if (y0 < bb[1]) bb[1] = y0; if (x1 > bb[2]) bb[2] = x1; if (y1 > bb[3]) bb[3] = y1;
+  const ir = 1 / (r * r);
+  for (let yy = y0; yy <= y1; yy++) for (let xx = x0; xx <= x1; xx++) {
+    const dx = xx + 0.5 - x, dy = yy + 0.5 - y, q = 1 - (dx * dx + dy * dy) * ir;
+    if (q > 0) SD[yy * W + xx] += d * q;
+  }
+}
+const SMOKE_W = C('#8a7270'), SMOKE_C = C('#5a6282');
+const BB = [0, 0, 0, 0];
+function drawSmoke(t) {
+  for (const pl of PLUMES) {
+    BB[0] = W; BB[1] = H; BB[2] = -1; BB[3] = -1;
+    for (const q of pl.puffs) {
+      phase(q, t);
+      const age = q.f * q.T, a = q.f, ph = q.ph + h2(q.seed, q.c) * 2;
+      const x = pl.x + pl.wind * age * (1 + age * 0.08) + Math.sin(age * 0.8 + ph) * a * 3;
+      const y = pl.y - pl.rise * age / (1 + age * 0.12) + Math.sin(age * 1.1 + ph) * 0.8;
+      const d = pl.dens * Math.min(1, age / 0.8) * Math.pow(1 - a, 1.4);
+      if (d > 0.02) splat(x, y, pl.r0 + pl.grow * age, d, BB);
+    }
+    for (let y = BB[1]; y <= BB[3]; y++) for (let x = BB[0]; x <= BB[2]; x++) {
+      const p = y * W + x, d = SD[p];
+      if (d === 0) continue;
+      SD[p] = 0;
+      if (d < 0.03) continue;
+      const q = Math.floor(Math.min(0.72, d * 0.9) * 6 + bay(x, y)) / 6;
+      if (q <= 0) continue;
+      const ht = clamp((pl.y - y) / 60, 0, 1), lm = Math.min(1, LM[p]);
+      const i = p << 2;
+      const r = SMOKE_W[0] + (SMOKE_C[0] - SMOKE_W[0]) * ht + lm * 70, g = SMOKE_W[1] + (SMOKE_C[1] - SMOKE_W[1]) * ht + lm * 45, b = SMOKE_W[2] + (SMOKE_C[2] - SMOKE_W[2]) * ht + lm * 20;
+      F[i] += (r - F[i]) * q; F[i + 1] += (g - F[i + 1]) * q; F[i + 2] += (b - F[i + 2]) * q;
+    }
+  }
+}
+addPlume(BOAT.pipeX + 0.5, 228, 34, 9, { wind: 8, rise: 11, r0: 2, grow: 1.2, dens: 1.25 });
+for (const h of HOUSES) if (h.chimney) addPlume(h.chimney + 0.5, h.chimTop - 2, 20, 8, { wind: 6, rise: 6, r0: 1.5, grow: 0.9, dens: 0.7 });
+
+/* ---------- passers-by on the far quay ---------- */
+const WALKER = [
+  '....uuu....', '..uuuuuuu..', '.uuuuuuuuu.', 'uuuuuuuuuuu', 'r.r.rsr.r.r', '.....s.....',
+  '...hhs.....', '...fha.....', '...ccca....', '..cccc.....', '..cccc.....', '..cccc.....', '..cccc.....', '...ccc.....',
+];
+const WALK_LEGS = [['...l..l....', '..l....l...'], ['....ll.....', '....ll.....']];
+const WCOL = { u: C('#0b0d15'), r: C('#262d48'), s: C('#15151c'), h: C('#2a1e22'), f: C('#7a5446'), c: C('#262030'), a: C('#262030'), l: C('#121118') };
+function drawWalker(t) {
+  if (t < 4 || t >= 56) return;
+  const x = Math.round(660 - (t - 4) / 52 * 690), fy = feetY(x);
+  const rows = WALKER.concat(WALK_LEGS[Math.floor(t * 4) & 1]);
+  const lm = Math.min(1, lightAtF(x, fy - 8, 0));
+  rows.forEach((row, j) => {
+    for (let i = 0; i < row.length; i++) {
+      const c = WCOL[row[i]];
+      if (!c) continue;
+      fpx(x - 5 + i, fy - rows.length + 1 + j, c[0] + lm * 110, c[1] + lm * 70, c[2] + lm * 30);
+    }
+  });
+}
+function fline(x0, y0, x1, y1, c, lm) {
+  x0 = Math.round(x0); y0 = Math.round(y0); x1 = Math.round(x1); y1 = Math.round(y1);
+  const dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
+  let e = dx + dy;
+  for (;;) {
+    fpx(x0, y0, c[0] + lm * 110, c[1] + lm * 70, c[2] + lm * 30);
+    if (x0 === x1 && y0 === y1) break;
+    const e2 = 2 * e;
+    if (e2 >= dy) { e += dy; x0 += sx; }
+    if (e2 <= dx) { e += dx; y0 += sy; }
+  }
+}
+const CY = { frame: C('#15171f'), body: C('#23202c'), head: C('#2a1e22'), umb: C('#5a1a24'), umbL: C('#7a2a30'), leg: C('#121118') };
+function drawCyclist(t) {
+  if (t < 18 || t >= 40) return;
+  const x = Math.round(-24 + (t - 18) / 22 * 690), fy = feetY(x), lm = Math.min(1, lightAtF(x, fy - 10, 0));
+  for (const wx of [x - 6, x + 6]) for (let a = 0; a < 20; a++) fpx(wx + Math.cos(a / 20 * TAU) * 3.4, fy - 3.4 + Math.sin(a / 20 * TAU) * 3.4, 12, 12, 18);
+  const L = (a, b, c, d, col) => fline(a, b, c, d, col, lm);
+  L(x - 6, fy - 3, x - 1, fy - 3, CY.frame); L(x - 1, fy - 3, x - 2, fy - 9, CY.frame); L(x - 1, fy - 3, x + 4, fy - 8, CY.frame);
+  L(x + 4, fy - 9, x + 6, fy - 3, CY.frame); L(x + 3, fy - 11, x + 5, fy - 10, CY.frame);
+  const th = TAU * 1.2 * t, cxk = x - 1, cyk = fy - 3;
+  for (const s of [1, -1]) {
+    const fx = cxk + Math.cos(th) * 2.5 * s, fyy = cyk + Math.sin(th) * 2.5 * s, kx = (x - 2 + fx) / 2 + 2, ky = (fy - 10 + fyy) / 2 - 1.5;
+    L(x - 2, fy - 10, kx, ky, CY.leg); L(kx, ky, fx, fyy, CY.leg);
+  }
+  L(x - 2, fy - 10, x, fy - 16, CY.body); L(x - 1, fy - 10, x + 1, fy - 16, CY.body);
+  L(x + 1, fy - 15, x + 3, fy - 11, CY.body); L(x - 1, fy - 15, x - 1, fy - 20, CY.frame);
+  fpx(x, fy - 18, CY.head[0], CY.head[1], CY.head[2]); fpx(x + 1, fy - 18, CY.head[0], CY.head[1], CY.head[2]); fpx(x + 1, fy - 17, 122, 84, 70);
+  for (let i = -6; i <= 4; i++) { const hy = fy - 21 - (Math.abs(i + 1) < 3 ? 2 : Math.abs(i + 1) < 5 ? 1 : 0); fpx(x + i, hy, CY.umb[0] + lm * 90, CY.umb[1] + lm * 50, CY.umb[2] + lm * 20); if (Math.abs(i + 1) < 4) fpx(x + i, hy - 1, CY.umbL[0] + lm * 90, CY.umbL[1] + lm * 50, CY.umbL[2] + lm * 20); }
+  fpx(x + 7, fy - 7, 255, 244, 210);
+  fadd(x + 8, fy - 7, 90, 80, 50); fadd(x + 9, fy - 7, 45, 40, 25); fadd(x + 7, fy - 6, 40, 35, 20);
+  fpx(x - 8, fy - 6, 255, 60, 40); fadd(x - 9, fy - 6, 60, 10, 5);
+}
+function drawCat(t) {
+  if (!CAT) return;
+  const bx = CAT.x + 1, by = CAT.y + CAT.gh - 1, c = [26, 16, 22];
+  for (let j = 0; j < 4; j++) for (let i = 0; i < 4; i++) if (!(j === 0 && i === 0)) fpx(bx + i, by - j, ...c);
+  fpx(bx + 1, by - 4, ...c); fpx(bx + 2, by - 4, ...c); fpx(bx + 3, by - 4, ...c); fpx(bx + 1, by - 5, ...c); fpx(bx + 3, by - 5, ...c);
+  const blink = tn(t, 0.25, 61) > 0.85;
+  if (!blink) fpx(bx + 2, by - 4, 200, 208, 96);
+  const f = Math.floor(tn(t, 0.6, 51) * 3);
+  const tail = [[[4, 0], [5, -1]], [[4, 0], [5, 0]], [[4, -1], [5, -2]]][f];
+  for (const [dx, dy] of tail) fpx(bx + dx, by + dy, ...c);
+}
+
+/* ============================================================
+   INTERACTION — switch window lights, shake leaves loose, ripple water.
+   Lights and rain level are steady states and the rest are short
+   one-off effects, so an untouched recording still loops seamlessly.
+   ============================================================ */
+let NOW = 0, LAST_T = 0;            // wall-clock seconds for one-off effects; last rendered loop time
+const TOGGLED = new Set();
+function setWindow(win, on) {
+  if (win.dyn) { win.user = on ? 1 : 0; return; }
+  win.on = on;
+  if (on !== win.def) TOGGLED.add(win); else TOGGLED.delete(win);
+}
+const windowLit = (win, t) => win.dyn ? win.k(t) > 0.05 : win.on;
+function drawWindowSwitches() {
+  for (const win of TOGGLED) {
+    const g = win.glass, cols = win.on ? win.litC : win.darkC;
+    for (let j = 0; j < g.length; j++) F32[g[j]] = cols[j];
+    const s = win.halo, sg = win.on ? 1 : -1;
+    for (let j = 0; j < s.n; j++) { const i = s.idx[j]; F[i] += sg * s.r[j]; F[i + 1] += sg * s.g[j]; F[i + 2] += sg * s.b[j]; }
+  }
+}
+let lightsOut = false;
+function toggleAllLights() {
+  lightsOut = !lightsOut;
+  for (const win of WINDOWS) {
+    if (win.dyn) win.user = lightsOut ? 0 : null;
+    else setWindow(win, lightsOut ? false : win.def);
+  }
+  toast(lightsOut ? 'Lights out' : 'Lights back on');
+}
+
+// leaves shaken loose by a click: same look as the looping leaves, driven by wall-clock time
+const BURST = [];
+const burstX = (b, s) => b.x0 + b.vx * s + b.A * (Math.sin(b.w * s + b.ph) - Math.sin(b.ph)) + b.pop * s * Math.exp(-3 * s);
+const burstY = (b, s) => b.y0 + b.vy * s - 14 * s * Math.exp(-5 * s);
+function shakeTree(sx, sy, near) {
+  const R = Math.random, n = near ? 18 : 10;
+  for (let i = 0; i < n; i++) {
+    const x0 = sx + (R() - 0.5) * (near ? 30 : 16), y0 = sy + (R() - 0.5) * (near ? 18 : 10);
+    const p = clamp(Math.floor(y0), 0, H - 1) * W + clamp(Math.floor(x0), 0, W - 1);
+    const water = !near && R() < 0.6;
+    const b = {
+      born: NOW + R() * 0.5, x0, y0, near, water, hue: TREE[p] ? TREE_HUE[p] : pickHue(R()),
+      yg: near ? NQ + 6 + R() * 54 : water ? WL + 2 + R() * 16 : ST + 1 + R() * 7,
+      vy: near ? 12 + R() * 10 : 7 + R() * 6, vx: near ? 5 + R() * 12 : 3 + R() * 7,
+      A: near ? 3 + R() * 6 : 1.5 + R() * 3, w: 1.1 + R() * 1.4, ph: R() * TAU, pop: (R() - 0.5) * 30,
+      rest: near ? 5 + R() * 5 : 7 + R() * 5, drift: 2 + R() * 2, flip: R() < 0.5,
+    };
+    let lo = 0, hi = 90;                 // landing time: y only dips briefly, then falls steadily
+    for (let k = 0; k < 32; k++) { const m = (lo + hi) / 2; if (burstY(b, m) < b.yg) lo = m; else hi = m; }
+    b.land = hi;
+    BURST.push(b);
+  }
+  if (BURST.length > 240) BURST.splice(0, BURST.length - 240);
+}
+const BS = {};
+function drawBursts(near, want) {
+  for (let i = BURST.length - 1; i >= 0; i--) {
+    const b = BURST[i];
+    if (b.near !== near) continue;
+    const s = NOW - b.born;
+    if (s < 0) continue;
+    BS.hue = b.hue; BS.near = near; BS.a = 1;
+    if (s < b.land) {
+      if (want !== 'air') continue;
+      BS.x = burstX(b, s); BS.y = burstY(b, s);
+      const spin = Math.sin(b.w * 1.7 * s + b.ph * 2);
+      BS.shape = Math.abs(spin) > 0.66 ? 0 : Math.abs(spin) > 0.33 ? 1 : 2; BS.flip = spin < 0; BS.phase = 0;
+    } else {
+      const rest = s - b.land;
+      if (rest > b.rest) { BURST.splice(i, 1); continue; }
+      if ((want === 'float') !== b.water) continue;
+      BS.x = burstX(b, b.land) + (b.water ? rest * b.drift : 0);
+      BS.y = b.yg + (b.water ? Math.sin(rest * 1.3 + b.ph) * 0.6 : 0);
+      BS.shape = 1; BS.flip = b.flip; BS.phase = b.water ? 2 : 1; BS.a = Math.min(1, (b.rest - rest) / 2);
+    }
+    if (BS.x < -6 || BS.x > W + 6) continue;
+    drawLeaf(BS);
+  }
+}
+
+// rings from a click on the canal or a puddle
+const CLICK_RIPPLES = [];
+function addRipple(x, y, puddle) {
+  for (const d of [0, 0.22, 0.5]) CLICK_RIPPLES.push({ born: NOW + d, x, y, puddle, first: d === 0 });
+}
+function drawClickRipples(puddle) {
+  for (let i = CLICK_RIPPLES.length - 1; i >= 0; i--) {
+    const r = CLICK_RIPPLES[i];
+    if (r.puddle !== puddle) continue;
+    const age = NOW - r.born, life = puddle ? 1.1 : 1.8;
+    if (age < 0) continue;
+    if (age > life) { CLICK_RIPPLES.splice(i, 1); continue; }
+    const dep = puddle ? 1 : (r.y - WL) / (NQ - WL);
+    const a = 1 - age / life, rx = (1.5 + age * (puddle ? 12 : 14)) * (puddle ? 1 : 0.6 + 0.7 * dep), ry = rx * (puddle ? 0.35 : 0.3);
+    if (r.first && age < 0.12) { fadd(r.x, r.y - 1, 90, 100, 120); fadd(r.x, r.y - 2, 50, 60, 80); }
+    const n = Math.max(10, Math.round(rx * 6));
+    for (let s = 0; s < n; s++) {
+      const an = s / n * TAU, X = Math.floor(r.x + Math.cos(an) * rx), Y = Math.floor(r.y + Math.sin(an) * ry);
+      if (X < 0 || X >= W || Y < 0 || Y >= H) continue;
+      const p = Y * W + X;
+      if (puddle ? !PM[p] : (Y < WL || Y >= NQ)) continue;
+      const i = p << 2;
+      F[i] += (22 + F[i] * 0.5) * a; F[i + 1] += (26 + F[i + 1] * 0.5) * a; F[i + 2] += (36 + F[i + 2] * 0.5) * a;
+    }
+  }
+}
+
+// what sits under a scene pixel, front to back
+function hitTest(sx, sy) {
+  const x = Math.floor(sx), y = Math.floor(sy);
+  if (x < 0 || y < 0 || x >= W || y >= H) return null;
+  const p = y * W + x;
+  if (x >= KIWI_BOX.x0 && x <= KIWI_BOX.x1 && y >= KIWI_BOX.y0 && y <= KIWI_BOX.y1) return { kind: 'kiwi' };
+  if (Lnear[p * 4 + 3]) {
+    if (TREE[p] === 1 || (y < 170 && x < 250)) return { kind: 'tree', near: true, x, y };   // elm leaves or branches
+    return PM[p] ? { kind: 'puddle', x, y } : null;
+  }
+  if (Lboat[p * 4 + 3]) return { kind: 'boat' };
+  if (Lfront[p * 4 + 3]) return TREE[p] === 2 ? { kind: 'tree', near: false, x, y } : null;
+  if (OWN[p] === TOWER_I + 1) return { kind: 'tower' };
+  if (OWN[p]) {
+    const hi = OWN[p] - 1;
+    const win = HOUSE_PIX[hi].wins.find(w => x >= w.x - 1 && x <= w.x + w.w && y >= w.y - 1 && y <= w.y + w.h);
+    return { kind: 'house', hi, win };
+  }
+  if (y >= WL && y < NQ) return { kind: 'water', x, y };
+  return null;
+}
+function interact(hit, e) {
+  if (!hit) return;
+  if (hit.kind === 'house') {
+    if (e && e.shiftKey && hit.win) setWindow(hit.win, !windowLit(hit.win, LAST_T));   // shift-click still flips one window
+    else openProject(hit.hi);
+  } else if (hit.kind === 'boat') openProject(BOAT_I);
+  else if (hit.kind === 'tower') openProject(TOWER_I);
+  else if (hit.kind === 'kiwi') openProject(KIWI_I);
+  else if (hit.kind === 'tree') shakeTree(hit.x, hit.y, hit.near);
+  else addRipple(hit.x, hit.y, hit.kind === 'puddle');
+}
+const RAIN_LEVELS = [[1, 'Rain'], [RAIN_MAX, 'Heavy rain'], [0.4, 'Drizzle'], [0, 'Rain off']];
+let rainLevel = 0;
+function cycleRain() {
+  rainLevel = (rainLevel + 1) % RAIN_LEVELS.length;
+  RAIN_F = RAIN_LEVELS[rainLevel][0];
+  toast(RAIN_LEVELS[rainLevel][1]);
+}
+let toastTimer = 0;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 1400);
+}
+
+/* ============================================================
+   FRAME
+   ============================================================ */
+function render(t) {
+  F.set(Lback);
+  drawSky(t);
+  drawWindowSwitches();
+  stage('back', t);
+  drawCat(t);
+  drawWalker(t);
+  drawCyclist(t);
+  composite(IDX_BRIDGE, U_BACK);
+  composite(IDX_FRONT, U_FRONT);
+  stage('front', t);
+  drawWater(t);
+  drawRipples(t);
+  drawClickRipples(false);
+  drawLeaves(LEAVES_FAR, t, false, 'float');
+  drawBursts(false, 'float');
+  drawLeaves(LEAVES_FAR, t, false, 'air');
+  drawBursts(false, 'air');
+  drawRain(RAIN_FAR, t);
+  composite(IDX_BOAT, U_BOAT);
+  stage('boat', t);
+  drawBoatReflection(t);
+  drawSmoke(t);
+  drawRain(RAIN_MID, t);
+  composite(IDX_NEAR, U_NEAR);
+  drawSplashes(t);
+  drawClickRipples(true);
+  drawSprite(HALO_SPR, haloK(t));
+  stage('near', t);
+  drawSparks(t);
+  drawLeaves(LEAVES_NEAR, t, true, 'air');
+  drawBursts(true, 'air');
+  drawRain(RAIN_NEAR, t);
+  for (let j = 0, n = VIGI.length; j < n; j++) { const i = VIGI[j], v = VIGF[j]; F[i] *= v; F[i + 1] *= v; F[i + 2] *= v; }
+}
+
+/* ============================================================
+   DISPLAY — whole-pixel scaling, fullscreen, idle cursor
+   ============================================================ */
+const view = document.getElementById('view'), vctx = view.getContext('2d', { alpha: false });
+const off = document.createElement('canvas');
+off.width = W; off.height = H;
+const octx = off.getContext('2d');
+let DX = 0, DY = 0, DW = W, DH = H;
+let CONTAIN = new URLSearchParams(location.search).get('fit') === 'contain';
+function resize() {
+  const dpr = window.devicePixelRatio || 1, cw = Math.round(innerWidth * dpr), ch = Math.round(innerHeight * dpr);
+  view.width = cw; view.height = ch;
+  view.style.width = innerWidth + 'px'; view.style.height = innerHeight + 'px';
+  let s = CONTAIN ? Math.min(cw / W, ch / H) : Math.max(cw / W, ch / H);   // cover the screen by default
+  const si = Math.round(s);
+  if (Math.abs(s - si) < 0.03 && si * W >= cw - 2 && si * H >= ch - 2) s = si;
+  DW = Math.round(W * s); DH = Math.round(H * s);
+  DX = Math.floor((cw - DW) / 2); DY = Math.floor((ch - DH) / 2);
+  vctx.imageSmoothingEnabled = false;
+  vctx.fillStyle = '#05060c'; vctx.fillRect(0, 0, cw, ch);
+}
+addEventListener('resize', resize);
+resize();
+
+const params = new URLSearchParams(location.search);
+const FREEZE = params.has('t') ? parseFloat(params.get('t')) : null;
+const SPEED = parseFloat(params.get('speed') || '1');
+const t0 = performance.now();
+const perf = { ms: 0, n: 0 };
+// debug handle: __diorama.freeze = 12.5 pauses on a moment, __diorama.fit(true) letterboxes
+const dbg = window.__diorama = {
+  perf, LOOP, render, F, freeze: FREEZE, fit(c) { CONTAIN = !!c; resize(); },
+  poke(sx, sy) { const h = hitTest(sx, sy); interact(h); return h && h.kind; },
+  open: i => openProject(i), close: () => closeProject(),
+};
+function frame(now) {
+  const fz = dbg.freeze;
+  const t = fz !== null && fz !== undefined ? ((fz % LOOP) + LOOP) % LOOP : (((now - t0) / 1000 * SPEED) % LOOP + LOOP) % LOOP;
+  const a = performance.now();
+  NOW = now / 1000; LAST_T = t;
+  render(t);
+  drawHouseFocus();
+  octx.putImageData(img, 0, 0);
+  vctx.drawImage(off, DX, DY, DW, DH);
+  perf.ms = perf.ms * 0.95 + (performance.now() - a) * 0.05; perf.n++;
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ============================================================
+   PORTFOLIO — every canal house opens its own project card.
+   The houseboat opens an "about me" card in the same frame.
+   Selecting a house (hover, or its open card) turns all its lights on
+   and outlines it; they go back as they were once it is deselected.
+   ============================================================ */
+const PROJ = HOUSES.map((h, i) => {
+  const d = (typeof PORTFOLIO !== 'undefined' && PORTFOLIO[i]) || {};
+  return {
+    no: String(i + 1).padStart(2, '0'),
+    title: d.title || 'Coming soon',
+    placeholder: !d.title,
+    kind: d.kind || 'iOS App',
+    year: d.year || '2026',
+    accent: d.accent || '#f0a04a',
+    tagline: d.tagline || 'A one-line pitch for this app goes here: what it does and who it is for.',
+    summary: d.summary || 'A short paragraph about the project: the problem, the approach, and what you are proud of. Mention a technical challenge you solved, a result such as downloads, ratings or a feature, and anything a hiring manager should know.',
+    role: d.role || 'Your role, e.g. Solo developer',
+    platform: d.platform || 'iOS 17+ · iPhone',
+    stack: d.stack || ['Swift', 'SwiftUI', 'Combine', 'Core Data'],
+    links: d.links || [['App Store', '#'], ['Case study', '#'], ['GitHub', '#']],
+  };
+});
+const AB = (typeof ABOUT !== 'undefined' && ABOUT) || {};
+const ABOUT_INFO = {
+  name: AB.name || 'Thomas',
+  role: AB.role || 'iOS Developer',
+  greeting: AB.greeting || "Hi, I'm " + (AB.name || 'Thomas') + '.',
+  tagline: AB.tagline || 'I build native iOS apps that feel fast, friendly and at home on the iPhone.',
+  bio: AB.bio || [
+    'A couple of sentences about you: how you got into iOS development, what kind of apps you love building, and what you care about in your work.',
+    'A second paragraph for the human side: where you are based, what you do away from Xcode, and what you are looking for next.',
+  ],
+  facts: AB.facts || [['Based in', 'Your city'], ['Currently', 'Open to new roles'], ['Experience', 'X years with Swift'], ['Shipped', 'X apps on the App Store']],
+  skills: AB.skills || ['Swift', 'SwiftUI', 'UIKit', 'Combine', 'Swift Concurrency', 'Core Data', 'SwiftData', 'XCTest', 'Xcode Cloud', 'Figma'],
+  experience: AB.experience || [['2024 to now', 'iOS Engineer', 'Company name'], ['2022 to 2024', 'iOS Developer', 'Company name'], ['2020 to 2022', 'Junior Developer', 'Company name']],
+  links: AB.links || [['Email me', '#'], ['GitHub', '#'], ['LinkedIn', '#'], ['Résumé', '#']],
+  accent: AB.accent || '#ffc46a',
+};
+const PE = (typeof PERSONAL !== 'undefined' && PERSONAL) || {};
+const PERSONAL_INFO = {
+  title: PE.title || 'Away from Xcode',
+  tagline: PE.tagline || 'A line about who you are when the laptop is closed.',
+  bio: PE.bio || [
+    'A paragraph about life outside work: what brought you from New Zealand to Amsterdam, and what you love about living here.',
+    'A second paragraph about the things that keep you busy: hobbies, sport, music, food, travel, family, or whatever you would talk about over a coffee.',
+  ],
+  photos: PE.photos || [['', 'A photo you love'], ['', 'Somewhere you have been'], ['', 'Something you do for fun']],
+  facts: PE.facts || [['Home', 'Amsterdam, by way of New Zealand'], ['Weekends', 'What a good weekend looks like'], ['Currently reading', 'A book you are enjoying'], ['On repeat', 'Music or a podcast you love']],
+  interests: PE.interests || ['Interest', 'Hobby', 'Sport', 'Music', 'Food', 'Travel'],
+  links: PE.links || [],
+  accent: PE.accent || '#a8c870',
+};
+const CO = (typeof CONTACT !== 'undefined' && CONTACT) || {};
+const CONTACT_INFO = {
+  title: CO.title || 'Get in touch',
+  tagline: CO.tagline || 'Happy to talk about iOS, building great mobile teams, or a project you have in mind.',
+  rows: CO.rows || [['Email', 'you@example.com', 'mailto:you@example.com'], ['Location', 'Your city', ''], ['LinkedIn', 'Add your profile', '#'], ['GitHub', 'Add your profile', '#']],
+  note: CO.note || '',
+  accent: CO.accent || '#b8c2e8',
+};
+let HOVER = -1, OPEN = -1;
+function drawHouseFocus() {
+  const hi = OPEN >= 0 ? OPEN : HOVER;
+  if (hi < 0) return;
+  const hp = HOUSE_PIX[hi], a = OPEN >= 0 ? 0.8 : 0.5 + 0.25 * Math.sin(NOW * 4);
+  for (const i of hp.body) { F[i] = F[i] * 1.08 + 6; F[i + 1] = F[i + 1] * 1.08 + 4; F[i + 2] = F[i + 2] * 1.04; }
+  for (const i of hp.edge) { F[i] += (255 - F[i]) * a; F[i + 1] += (205 - F[i + 1]) * a; F[i + 2] += (120 - F[i + 2]) * a; }
+}
+const tag = document.getElementById('pf-tag');
+function placeTag(hi) {
+  const dpr = window.devicePixelRatio || 1, hp = HOUSE_PIX[hi];
+  const x = clamp((DX + hp.cx / W * DW) / dpr, 80, innerWidth - 80), y = Math.max(44, (DY + (hp.top - 4) / H * DH) / dpr);
+  tag.style.left = x + 'px'; tag.style.top = y + 'px';
+}
+function hoverHouse(hi) {
+  if (hi === HOVER) return;
+  HOVER = hi;
+  syncLights();
+  if (hi < 0 || OPEN >= 0) { tag.classList.remove('show'); return; }
+  if (hi === BOAT_I) { tag.innerHTML = '<b>About me</b>'; tag.appendChild(document.createTextNode('Professional')); }
+  else if (hi === KIWI_I) { tag.innerHTML = '<b>About me</b>'; tag.appendChild(document.createTextNode('Personal')); }
+  else if (hi === TOWER_I) { tag.innerHTML = '<b>Contact</b>'; tag.appendChild(document.createTextNode('Get in touch')); }
+  else {
+    tag.innerHTML = '<b>No. ' + PROJ[hi].no + '</b>';
+    tag.appendChild(document.createTextNode(PROJ[hi].title));
+  }
+  placeTag(hi);
+  tag.classList.add('show');
+}
+// the selected house (open card, else hover) has all its lights on; only one house is lit up at a time
+let LIT_HOUSE = -1;
+function syncLights() {
+  const want = OPEN >= 0 ? OPEN : HOVER;
+  if (want === LIT_HOUSE) return;
+  if (LIT_HOUSE >= 0) lightHouse(LIT_HOUSE, false);
+  LIT_HOUSE = want;
+  if (want >= 0) lightHouse(want, true);
+}
+function lightHouse(hi, on) {
+  for (const w of HOUSE_PIX[hi].wins) {
+    if (on) { w.saved = { on: w.on, user: w.user }; setWindow(w, true); }
+    else if (w.saved) { if (w.dyn) w.user = w.saved.user; else setWindow(w, w.saved.on); w.saved = null; }
+  }
+}
+
+const pf = document.getElementById('pf'), $ = id => document.getElementById(id);
+const houseCv = $('pf-house'), dots = $('pf-dots');
+PROJ.forEach((pr, i) => {
+  const b = document.createElement('button');
+  b.type = 'button'; b.setAttribute('aria-label', 'No. ' + pr.no + ': ' + pr.title);
+  b.addEventListener('click', () => openProject(i));
+  dots.appendChild(b);
+});
+function fitHouse() {
+  if (OPEN < 0) return;
+  const snap = HOUSE_PIX[OPEN].snap, box = houseCv.parentElement;
+  const roomW = box.clientWidth - 40, roomH = box.clientHeight - (OPEN === BOAT_I ? 30 : 56) - 18;
+  if (OPEN === TOWER_I && roomH < snap.height) {   // the tower is tall: never squeeze it below 1:1, let it rise out of view
+    houseCv.style.width = snap.width + 'px'; houseCv.style.height = snap.height + 'px'; return;
+  }
+  const s = Math.max(1, Math.min(OPEN === KIWI_I ? 6 : 4, Math.floor(Math.min(roomW / snap.width, roomH / snap.height))));
+  houseCv.style.width = snap.width * s + 'px'; houseCv.style.height = snap.height * s + 'px';
+}
+const linkBtn = ([label, url], k) => {
+  const a = Object.assign(document.createElement('a'), { className: 'pf-btn' + (k ? '' : ' primary'), textContent: label, href: url });
+  if (url === '#') a.addEventListener('click', e => e.preventDefault());
+  else if (!url.startsWith('mailto:')) { a.target = '_blank'; a.rel = 'noopener'; }
+  return a;
+};
+const el = (tag, cls, text) => Object.assign(document.createElement(tag), cls ? { className: cls } : {}, text != null ? { textContent: text } : {});
+function fillAbout() {
+  const a = ABOUT_INFO;
+  pf.style.setProperty('--pf-acc', a.accent);
+  $('pf-a-role').textContent = a.role; $('pf-a-name').textContent = a.greeting; $('pf-a-tagline').textContent = a.tagline;
+  $('pf-a-bio').replaceChildren(...a.bio.map(t => el('p', '', t)));
+  $('pf-a-facts').replaceChildren(...a.facts.map(([k, v]) => { const d = el('div'); d.append(el('dt', '', k), el('dd', '', v)); return d; }));
+  $('pf-a-skills').replaceChildren(...a.skills.map(t => el('span', '', t)));
+  $('pf-a-exp').replaceChildren(...a.experience.map(([when, role, where]) => {
+    const li = el('li'); li.append(el('span', 'when', when), el('b', '', role), el('span', 'where', where)); return li;
+  }));
+  $('pf-a-links').replaceChildren(...a.links.map(linkBtn));
+  $('pf-a-note').hidden = !!AB.bio;
+}
+function fillPersonal() {
+  const a = PERSONAL_INFO;
+  pf.style.setProperty('--pf-acc', a.accent);
+  $('pf-p-title').textContent = a.title; $('pf-p-tagline').textContent = a.tagline;
+  $('pf-p-photos').replaceChildren(...a.photos.map(([src, cap]) => {
+    const f = el('figure', 'pf-photo'), frame = el('div', 'pf-photo-img');
+    if (src) frame.append(Object.assign(document.createElement('img'), { src, alt: cap, loading: 'lazy' }));
+    f.append(frame, el('figcaption', '', cap)); return f;
+  }));
+  $('pf-p-bio').replaceChildren(...a.bio.map(t => el('p', '', t)));
+  $('pf-p-facts').replaceChildren(...a.facts.map(([k, v]) => { const d = el('div'); d.append(el('dt', '', k), el('dd', '', v)); return d; }));
+  $('pf-p-interests').replaceChildren(...a.interests.map(t => el('span', '', t)));
+  $('pf-p-links').replaceChildren(...a.links.map(linkBtn));
+  $('pf-p-note').hidden = !!PE.bio;
+}
+function fillContact() {
+  const c = CONTACT_INFO;
+  pf.style.setProperty('--pf-acc', c.accent);
+  $('pf-c-title').textContent = c.title; $('pf-c-tagline').textContent = c.tagline;
+  const email = c.rows.find(r => r[2] && r[2].startsWith('mailto:'));
+  $('pf-c-rows').replaceChildren(...c.rows.map(([label, value, href]) => {
+    const li = el('li'), v = href && href !== '#' ? Object.assign(el('a', 'val', value), { href }) : el('span', 'val' + (href === '#' ? ' todo' : ''), value);
+    if (v.tagName === 'A' && !href.startsWith('mailto:')) { v.target = '_blank'; v.rel = 'noopener'; }
+    li.append(el('span', 'key', label), v);
+    if (href && href.startsWith('mailto:')) {
+      const b = el('button', 'pf-copy', 'Copy');
+      b.type = 'button';
+      b.addEventListener('click', () => {
+        navigator.clipboard?.writeText(href.slice(7)).then(() => { b.textContent = 'Copied'; setTimeout(() => { b.textContent = 'Copy'; }, 1500); }, () => {});
+      });
+      li.append(b);
+    }
+    return li;
+  }));
+  $('pf-c-links').replaceChildren(...(email ? [linkBtn(['Email me', email[2]], 0)] : []));
+  $('pf-c-note').textContent = c.note; $('pf-c-note').hidden = !c.note;
+}
+// the three "about me" cards (houseboat, kiwi, tower) link to each other in a loop
+const ABOUT_GROUP = [BOAT_I, KIWI_I, TOWER_I], ABOUT_NAME = { [BOAT_I]: 'Professional', [KIWI_I]: 'Personal', [TOWER_I]: 'Contact' };
+const isAbout = i => ABOUT_GROUP.includes(i);
+const aboutStep = (i, d) => ABOUT_GROUP[(ABOUT_GROUP.indexOf(i) + d + ABOUT_GROUP.length) % ABOUT_GROUP.length];
+function openProject(hi) {
+  if (!isAbout(hi)) hi = (hi + PROJ.length) % PROJ.length;
+  const first = OPEN < 0, mode = hi === BOAT_I ? 'about' : hi === KIWI_I ? 'personal' : hi === TOWER_I ? 'contact' : 'project', about = mode !== 'project';
+  OPEN = hi; syncLights();
+  pf.dataset.mode = mode;
+  pf.setAttribute('aria-labelledby', { about: 'pf-a-name', personal: 'pf-p-title', contact: 'pf-c-title', project: 'pf-title' }[mode]);
+  $('pf-no-wrap').textContent = about ? ABOUT_NAME[hi] : 'No. ' + PROJ[hi].no;
+  if (about) {
+    $('pf-prev-lbl').textContent = ABOUT_NAME[aboutStep(hi, -1)];
+    $('pf-next-lbl').textContent = ABOUT_NAME[aboutStep(hi, 1)];
+  }
+  if (mode === 'about') fillAbout();
+  if (mode === 'personal') fillPersonal();
+  if (mode === 'contact') fillContact();
+  const pr = PROJ[about ? 0 : hi];
+  if (!about) {
+  pf.style.setProperty('--pf-acc', pr.accent);
+  $('pf-kind').textContent = pr.kind; $('pf-year').textContent = pr.year;
+  $('pf-title').textContent = pr.title; $('pf-tagline').textContent = pr.tagline; $('pf-summary').textContent = pr.summary;
+  $('pf-role').textContent = pr.role; $('pf-platform').textContent = pr.platform;
+  $('pf-stack').replaceChildren(...pr.stack.map(t => Object.assign(document.createElement('span'), { textContent: t })));
+  $('pf-links').replaceChildren(...pr.links.map(linkBtn));
+  $('pf-note').hidden = !pr.placeholder;
+  const prev = PROJ[(hi + PROJ.length - 1) % PROJ.length], next = PROJ[(hi + 1) % PROJ.length];
+  $('pf-prev-lbl').textContent = 'No. ' + prev.no; $('pf-next-lbl').textContent = 'No. ' + next.no;
+  [...dots.children].forEach((d, k) => d.setAttribute('aria-current', k === hi ? 'true' : 'false'));
+  }
+  const snap = HOUSE_PIX[hi].snap;
+  houseCv.width = snap.width; houseCv.height = snap.height;
+  const hc = houseCv.getContext('2d');
+  hc.clearRect(0, 0, snap.width, snap.height); hc.drawImage(snap, 0, 0);
+  pf.querySelectorAll('.pf-body').forEach(b => { b.scrollTop = 0; });
+  tag.classList.remove('show'); hint.classList.remove('show');
+  if (first) {
+    pf.hidden = false;
+    pf.querySelector('.pf-card').focus({ preventScroll: true });
+  }
+  fitHouse();
+}
+function closeProject() {
+  if (OPEN < 0) return;
+  OPEN = -1; HOVER = -1; syncLights();
+  pf.hidden = true;
+  view.focus?.();
+}
+pf.addEventListener('click', e => { if (e.target.closest('[data-close]')) closeProject(); });
+$('pf-prev').addEventListener('click', () => openProject(isAbout(OPEN) ? aboutStep(OPEN, -1) : OPEN - 1));
+$('pf-next').addEventListener('click', () => openProject(isAbout(OPEN) ? aboutStep(OPEN, 1) : OPEN + 1));
+$('pf-work').addEventListener('click', () => openProject(0));
+addEventListener('resize', () => { fitHouse(); if (HOVER >= 0) placeTag(HOVER); });
+// returns true when the open card handled the key, so scene shortcuts stay quiet behind it
+function projectKeys(e) {
+  if (OPEN < 0) return false;
+  if (e.key === 'Escape') closeProject();
+  else if (e.key === 'ArrowLeft') openProject(isAbout(OPEN) ? aboutStep(OPEN, -1) : OPEN - 1);
+  else if (e.key === 'ArrowRight') openProject(isAbout(OPEN) ? aboutStep(OPEN, 1) : OPEN + 1);
+  else if (e.key === 'Tab') {   // keep focus inside the card
+    const f = [...pf.querySelectorAll('button, a[href]')].filter(el => el.offsetParent !== null);
+    const i = f.indexOf(document.activeElement);
+    if (e.shiftKey && i <= 0) { f[f.length - 1].focus(); e.preventDefault(); }
+    else if (!e.shiftKey && i === f.length - 1) { f[0].focus(); e.preventDefault(); }
+    return true;
+  } else return false;
+  e.preventDefault();
+  return true;
+}
+
+// input: clicks on the scene, keys, fullscreen; the hint and cursor hide so recordings stay clean
+const hint = document.getElementById('hint');
+let idleTimer = 0;
+function wake() {
+  document.body.classList.remove('idle');
+  if (!document.fullscreenElement && OPEN < 0) hint.classList.add('show');
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => { document.body.classList.add('idle'); hint.classList.remove('show'); }, 2500);
+}
+function toggleFs() {
+  if (document.fullscreenElement) document.exitFullscreen();
+  else document.documentElement.requestFullscreen?.().catch(() => {});
+}
+const hitAt = e => {
+  const dpr = window.devicePixelRatio || 1;
+  return hitTest((e.clientX * dpr - DX) / DW * W, (e.clientY * dpr - DY) / DH * H);
+};
+addEventListener('mousemove', e => {
+  wake();
+  const hit = e.target === view ? hitAt(e) : null;
+  document.body.classList.toggle('hot', !!hit);
+  hoverHouse(!hit ? -1 : hit.kind === 'house' ? hit.hi : hit.kind === 'boat' ? BOAT_I : hit.kind === 'tower' ? TOWER_I : hit.kind === 'kiwi' ? KIWI_I : -1);
+});
+view.addEventListener('mouseleave', () => hoverHouse(-1));
+view.addEventListener('click', e => interact(hitAt(e), e));
+view.addEventListener('dblclick', e => { if (!hitAt(e)) toggleFs(); });   // double-click empty sky/street for fullscreen
+addEventListener('keydown', e => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (projectKeys(e)) return;
+  const k = e.key.toLowerCase();
+  if (k === 'f') toggleFs();
+  else if (k === 'r') cycleRain();
+  else if (k === 'l') toggleAllLights();
+});
+document.addEventListener('fullscreenchange', () => hint.classList.remove('show'));
+wake();
+})();
+</script>
+</body>
+</html>
