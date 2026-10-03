@@ -308,8 +308,6 @@
    ============================================================ */
 const PLACEHOLDER = { kind: 'Coming soon', year: 'Placeholder' };
 const PORTFOLIO = [
-  { ...PLACEHOLDER, accent: '#e8603a' },
-  { ...PLACEHOLDER, accent: '#f8d25a' },
   { ...PLACEHOLDER, accent: '#8a9ac4' },
   {
     title: 'RNZ', kind: 'Public radio app', year: 'Alphero', accent: '#f0a04a',
@@ -366,8 +364,6 @@ const PORTFOLIO = [
     links: [['Case study', 'https://www.alphero.com/case-studies/drive-go-app-case-study']],
   },
   { ...PLACEHOLDER, accent: '#b8c2e8' },
-  { ...PLACEHOLDER, accent: '#e8603a' },
-  { ...PLACEHOLDER, accent: '#fcc46a' },
 ];
 
 /* CONTACT — the Westertoren. rows: [label, text, link]; a mailto: link gets a Copy button,
@@ -715,7 +711,7 @@ function drawSideCanal() {
   const cols = ['#1b2043', '#1e2448', '#191e3e', '#20264a'].map(C);
   const wins = ['#8a5a3a', '#a8703f', '#6a4636'].map(C), dark = C('#12162e');
   let x = 448;
-  const ws = [17, 20, 15, 22, 18, 16];
+  const ws = [17, 20, 15, 22, 18, 16, 19, 21, 17, 27];   // runs on to the right edge of the scene
   for (const w of ws) {
     const top = 156 + Math.floor(R() * 20), c = cols[Math.floor(R() * cols.length)], step = R() < 0.5;
     for (let i = 0; i < w; i++) {
@@ -759,19 +755,15 @@ function mat(name) {
   const m = MATS[name];
   return { base: C(m[0]), dark: C(m[1]), lite: C(m[2]), brick: m[3], trim: C(m[4]), trimL: mix(C(m[4]), C('#9aa4c4'), 0.4), trimD: mix(C(m[4]), C(m[1]), 0.5), frame: C(m[5]) };
 }
-const HOUSES = [
-  { x: -8,  w: 46, fl: 4, fh: 24, gable: 'step', g: 30, m: 'brickR', steps: 3, lit: 0.45 },
-  { x: 38,  w: 44, fl: 4, fh: 23, gable: 'bell', g: 30, m: 'cream', lit: 0.6 },
-  { x: 82,  w: 50, fl: 4, fh: 25, gable: 'cornice', g: 5, m: 'black', chimney: 120, lit: 0.35 },
-  { x: 132, w: 42, fl: 4, fh: 24, gable: 'neck', g: 34, m: 'brickB', lit: 0.55 },
-  { x: 174, w: 62, fl: 3, fh: 27, gable: 'pediment', g: 14, m: 'gray', cafe: true, lit: 0.6 },
-  { x: 236, w: 44, fl: 4, fh: 23, gable: 'step', g: 28, m: 'brickD', steps: 3, lit: 0.5 },
-  { x: 280, w: 46, fl: 4, fh: 24, gable: 'bell', g: 26, m: 'green', lit: 0.45 },
-  { x: 326, w: 54, fl: 4, fh: 25, gable: 'step', g: 34, m: 'brickB', steps: 4, chimney: 373, lit: 0.55 },
-  { x: 380, w: 38, fl: 4, fh: 23, gable: 'neck', g: 30, m: 'ochre', lit: 0.5 },
-  { x: 418, w: 34, fl: 3, fh: 26, gable: 'spout', g: 26, m: 'black', lit: 0.45 },
-  { x: 548, w: 52, fl: 4, fh: 24, gable: 'cornice', g: 5, m: 'brickR', lit: 0.4 },
-  { x: 600, w: 48, fl: 4, fh: 23, gable: 'step', g: 30, m: 'cream', steps: 3, lit: 0.5 },
+const HOUSES = [   // 8 houses, one per portfolio entry; Goodnotes (bookshop) and Sharesies (bank) in the middle
+  { x: -8,  w: 56, fl: 4, fh: 24, gable: 'step', g: 30, m: 'brickR', steps: 3, lit: 0.45 },
+  { x: 48,  w: 54, fl: 4, fh: 23, gable: 'bell', g: 30, m: 'cream', lit: 0.6 },
+  { x: 102, w: 56, fl: 4, fh: 25, gable: 'cornice', g: 5, m: 'black', chimney: 140, lit: 0.35 },
+  { x: 158, w: 64, fl: 3, fh: 27, gable: 'step', g: 32, m: 'brickB', steps: 4, shop: 'books', lit: 0.6 },
+  { x: 222, w: 62, fl: 3, fh: 27, gable: 'pediment', g: 14, m: 'gray', shop: 'bank', lit: 0.55 },
+  { x: 284, w: 58, fl: 4, fh: 25, gable: 'step', g: 34, m: 'brickD', steps: 4, chimney: 329, lit: 0.55 },
+  { x: 342, w: 56, fl: 4, fh: 24, gable: 'bell', g: 28, m: 'green', lit: 0.45 },
+  { x: 398, w: 54, fl: 4, fh: 23, gable: 'neck', g: 32, m: 'ochre', lit: 0.5 },
 ];
 const SPECIAL = {
   '1:3:1': { dyn: 'cat', style: 'warm' },
@@ -779,8 +771,8 @@ const SPECIAL = {
   '3:3:1': { dyn: 'fire', style: 'fire' },
   '5:0:1': { dyn: 'candle', style: 'amber' },
   '6:2:0': { dyn: 'switchA', style: 'gold', deco: 'curtain' },
-  '10:1:1': { dyn: 'switchB', style: 'warm', deco: 'plant' },
-  '8:2:0': { lit: true, style: 'amber', deco: 'person' },
+  '0:1:1': { dyn: 'switchB', style: 'warm', deco: 'plant' },
+  '7:2:0': { lit: true, style: 'amber', deco: 'person' },
   '2:1:1': { lit: true, style: 'gold', deco: 'lamp' },
 };
 const KFN = {
@@ -1006,7 +998,7 @@ function drawHouse(h, hi) {
   const ax = Math.round(cx - 0.5);
   if (h.gable !== 'cornice') { px(ax, h.peak - 1, m.trimL); if (orn) px(ax, h.peak - 2, m.trim); }
   const by = h.gable === 'cornice' ? bt - 2 : h.gable === 'pediment' ? bt - 7 : h.peak + 4;
-  rect(ax - 1, by, 3, 2, C('#120f18')); px(ax, by + 2, C('#0c0a10')); px(ax, by + 3, C('#0c0a10')); px(ax + 1, by + 4, C('#0c0a10'));
+  if (h.gable !== 'pediment') { rect(ax - 1, by, 3, 2, C('#120f18')); px(ax, by + 2, C('#0c0a10')); px(ax, by + 3, C('#0c0a10')); px(ax + 1, by + 4, C('#0c0a10')); }
   // gable openings
   const gst = (k) => { const r = h3(hi, 99, k); return r < 0.3 ? { lit: true, style: r < 0.12 ? 'amber' : 'dim' } : { lit: false }; };
   if (h.gable === 'step' || h.gable === 'spout') {
@@ -1018,7 +1010,7 @@ function drawHouse(h, hi) {
     if (h.gable === 'bell') { px(ax - 1, bt - Math.round(h.g * 0.78), C('#0e1024')); px(ax, bt - Math.round(h.g * 0.78), C('#0e1024')); }
   } else if (h.gable === 'pediment') {
     const oy = bt - 9;
-    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (dx * dx + dy * dy < 2) px(ax + dx, oy + dy, C('#f0a04a'), 1);
+    rect(ax - 2, oy - 1, 5, 3, C('#f0a04a'), 1);   // small lit lunette (a plus-shaped oculus read as a cross)
     glow(Afar, ax + 0.5, oy + 0.5, 4, 4, WINL, 0.2, { bands: 2 });
   }
   // upper floors
@@ -1030,7 +1022,7 @@ function drawHouse(h, hi) {
     if (!m.brick && f > 0) for (let x = x0 + 1; x < x0 + w; x++) px(x, rt, m.lite);
     for (let k = 0; k < nW; k++) drawWindow(Math.round(x0 + gap * (k + 1) + ww * k), wy, ww, wh, winState(hi, f, k, h), m);
   }
-  if (h.cafe) drawCafe(h); else groundFloor(h, hi);
+  if (h.shop === 'books') drawBookshop(h); else if (h.shop === 'bank') drawBank(h); else groundFloor(h, hi);
 }
 
 function groundFloor(h, hi) {
@@ -1059,47 +1051,85 @@ function groundFloor(h, hi) {
   }
 }
 
-const FONT = { C: ['###', '#..', '#..', '#..', '###'], A: ['.#.', '#.#', '###', '#.#', '#.#'], F: ['###', '#..', '##.', '#..', '#..'], E: ['###', '#..', '##.', '#..', '###'] };
-function drawCafe(h) {
-  const x0 = h.x, w = h.w;
-  rect(x0 + 2, 184, w - 4, 30, C('#1d1a24'));
-  // awning
-  const aw = C('#5a1c28'), awD = C('#3e1420'), awL = C('#7a2a34');
-  for (let x = x0 + 1; x < x0 + w - 1; x++) {
-    for (let y = 183; y <= 186; y++) px(x, y, y === 183 ? awL : ((x - x0) % 8 < 4 ? aw : awD));
-    for (let y = 187; y <= 191; y++) px(x, y, aw);
-    if ((x - x0) % 3 !== 1) px(x, 192, awD);
-  }
-  let lx = Math.round(x0 + w / 2 - 7);
-  for (const ch of 'CAFE') {
-    FONT[ch].forEach((row, j) => { for (let i = 0; i < 3; i++) if (row[i] === '#') px(lx + i, 187 + j, C('#f2d49a'), 1); });
-    lx += 4;
-  }
-  // big shop window
-  const G = LIT.warm;
-  for (let y = 194; y <= 211; y++) for (let x = x0 + 4; x <= x0 + 46; x++) {
-    const v = (y - 194) / 17 * 2.2 + 0.6 + (bay(x, y) - 0.5);
-    let c = G[clamp(Math.round(v), 0, 3)];
-    if (x === x0 + 25) c = C('#2a1a1a');
-    if (y === 206 || y === 207) c = C('#7a3e22');
-    px(x, y, c, 1);
-  }
-  for (const [lx2, ly] of [[x0 + 11, 197], [x0 + 32, 197], [x0 + 40, 198]]) {
-    for (let y = 194; y < ly; y++) px(lx2, y, C('#3a2420'), 1);
-    px(lx2, ly, C('#fff4cf'), 1); px(lx2 + 1, ly, C('#fff4cf'), 1); px(lx2, ly + 1, C('#ffe2a0'), 1);
-  }
-  const sil = C('#3a2220');
-  for (const [sx, sy] of [[x0 + 9, 200], [x0 + 18, 201], [x0 + 35, 199]]) {
-    rect(sx, sy, 2, 2, sil, 1); rect(sx - 1, sy + 2, 4, 4, sil, 1);
-  }
-  for (let x = x0 + 4; x <= x0 + 46; x++) if (h2(x, 11) < 0.5) px(x, 211, C('#2a1c1c'), 1);
-  // glass door
-  rect(x0 + 49, 193, 10, 21, C('#241c20'));
-  for (let y = 195; y <= 211; y++) for (let x = x0 + 51; x <= x0 + 56; x++) px(x, y, y === 203 ? C('#3a2420') : G[y < 200 ? 1 : 2], 1);
-  px(x0 + 51, 204, C('#d0a050'));
-  glow(Afar, x0 + 26, 202, 46, 26, WINL, 0.55, { bands: 5, pow: 1.5, lm: LM, lmI: 0.7 });
-  glow(Afar, x0 + 28, 217, 42, 7, WINL, 0.55, { bands: 4, pow: 1.2, lm: LM, lmI: 0.3 });
+const FONT = { C: ['###', '#..', '#..', '#..', '###'], A: ['.#.', '#.#', '###', '#.#', '#.#'], F: ['###', '#..', '##.', '#..', '#..'], E: ['###', '#..', '##.', '#..', '###'],
+  B: ['##.', '#.#', '##.', '#.#', '##.'], O: ['###', '#.#', '#.#', '#.#', '###'], K: ['#.#', '#.#', '##.', '#.#', '#.#'], S: ['###', '#..', '###', '..#', '###'], N: ['#.#', '###', '###', '#.#', '#.#'] };
+function sign(text, cx, y, c, nl = 1) {
+  let lx = Math.round(cx - (text.length * 4 - 1) / 2);
+  for (const ch of text) { FONT[ch].forEach((row, j) => { for (let i = 0; i < 3; i++) if (row[i] === '#') px(lx + i, y + j, c, nl); }); lx += 4; }
 }
+// Goodnotes: a bookshop with a gold-lettered fascia and a lit window of shelves
+function drawBookshop(h) {
+  const x0 = h.x, w = h.w;
+  const green = C('#173a2e'), greenL = C('#24503f'), greenD = C('#0e241c'), gold = C('#e2bc62'), goldD = C('#9a7a3a');
+  rect(x0 + 2, 184, w - 4, 30, green);
+  for (let y = 184; y < 214; y++) { px(x0 + 2, y, greenD); px(x0 + w - 3, y, greenL); }
+  // fascia
+  rect(x0 + 3, 185, w - 6, 8, greenD);
+  for (let x = x0 + 3; x < x0 + w - 3; x++) { px(x, 185, goldD); px(x, 192, goldD); }
+  sign('BOOKS', x0 + w / 2 - 6, 187, gold);
+  // display window: shelves of books in warm light
+  const wx0 = x0 + 5, wx1 = x0 + 43, wy0 = 195, wy1 = 211, R = rng(4242);
+  const spines = ['#b04a36', '#3a5e92', '#d2a648', '#4a7e5c', '#8e4a7e', '#d8723a', '#ece0b8', '#5a3a6a'].map(C);
+  const G = LIT.warm;
+  for (let y = wy0; y <= wy1; y++) for (let x = wx0; x <= wx1; x++) {
+    const v = (y - wy0) / (wy1 - wy0) * 2 + 0.7 + (bay(x, y) - 0.5);
+    px(x, y, G[clamp(Math.round(v), 0, 3)], 1);
+  }
+  for (const sy of [200, 205, 210]) {
+    for (let x = wx0; x <= wx1; x++) px(x, sy, C('#5a3420'), 1);
+    let x = wx0 + 1;
+    while (x < wx1) {
+      const bw = R() < 0.25 ? 2 : 1, hgt = 3 + (R() < 0.5 ? 1 : 0), c = mix(spines[Math.floor(R() * spines.length)], G[2], 0.18);
+      if (R() < 0.1) { x += 2; continue; }   // a gap on the shelf
+      for (let i = 0; i < bw && x + i < wx1; i++) for (let j = 1; j <= hgt; j++) px(x + i, sy - j, c, 1);
+      x += bw;
+    }
+  }
+  for (let y = wy0; y <= wy1; y++) px(x0 + 24, y, greenD, 1);
+  for (let x = wx0 - 1; x <= wx1 + 1; x++) { px(x, wy0 - 1, gold); px(x, wy1 + 1, greenD); }
+  // glazed door with a brass handle
+  rect(x0 + 47, 194, 12, 20, greenD);
+  for (let y = 196; y <= 211; y++) for (let x = x0 + 49; x <= x0 + 56; x++) px(x, y, y === 203 ? greenD : G[y < 200 ? 1 : 2], 1);
+  px(x0 + 49, 205, gold);
+  glow(Afar, x0 + 24, 203, 40, 24, WINL, 0.5, { bands: 5, pow: 1.5, lm: LM, lmI: 0.6 });
+  glow(Afar, x0 + 26, 217, 36, 6, WINL, 0.45, { bands: 4, pow: 1.2, lm: LM, lmI: 0.3 });
+  STOOPS.push({ x: x0 + 44, w: 18 });
+}
+// Sharesies: a stone bank with columns, an engraved name and a lit doorway
+function drawBank(h) {
+  const x0 = h.x, w = h.w, m = h.mc;
+  const stone = mix(m.base, C('#8a90b0'), 0.35), stoneL = mix(m.base, C('#b0b6d0'), 0.5), stoneD = mix(m.base, C('#14172a'), 0.35);
+  rect(x0 + 1, 184, w - 2, 30, stoneD);
+  // entablature with the name cut into it
+  rect(x0 + 1, 184, w - 2, 7, stone);
+  for (let x = x0; x < x0 + w; x++) { px(x, 184, stoneL); px(x, 190, stoneD); }
+  sign('BANK', x0 + w / 2, 185, C('#e2c070'), 1);
+  // tall lit windows between the columns, and the big door in the middle
+  const cols = [x0 + 5, x0 + 19, x0 + 39, x0 + 53];
+  const G = LIT.gold;
+  const win = (wx0, wx1) => {
+    for (let y = 194; y <= 207; y++) for (let x = wx0; x <= wx1; x++) {
+      const v = (y - 194) / 13 * 2 + 0.6 + (bay(x, y) - 0.5);
+      px(x, y, (x === Math.round((wx0 + wx1) / 2) || y === 200) ? C('#3a2c22') : G[clamp(Math.round(v), 0, 3)], 1);
+    }
+    glow(Afar, (wx0 + wx1) / 2, 201, 9, 9, WINL, 0.2, { bands: 3, lm: LM, lmI: 0.3 });
+  };
+  win(x0 + 11, x0 + 16); win(x0 + 45, x0 + 50);
+  // door with a fanlight
+  rect(x0 + 25, 193, 12, 18, C('#1c1612'));
+  for (let y = 196; y <= 210; y++) for (let x = x0 + 26; x <= x0 + 35; x++) px(x, y, x === x0 + 30 || x === x0 + 31 ? C('#2a1e14') : C('#5a3c22'));
+  for (let dy = 0; dy <= 2; dy++) for (let x = x0 + 26 + dy; x <= x0 + 35 - dy; x++) px(x, 195 - dy, G[2 - Math.min(dy, 1)], 1);
+  px(x0 + 29, 204, C('#d0a858')); px(x0 + 32, 204, C('#d0a858'));
+  glow(Afar, x0 + 31, 200, 14, 14, WINL, 0.3, { bands: 3, lm: LM, lmI: 0.4 });
+  // columns with capitals and bases
+  for (const cx of cols) {
+    rect(cx - 1, 191, 6, 2, stoneL); rect(cx - 1, 209, 6, 2, stone);
+    for (let y = 193; y < 209; y++) { px(cx, y, stoneD); px(cx + 1, y, stoneL); px(cx + 2, y, stone); px(cx + 3, y, stoneD); }
+  }
+  // broad steps
+  for (let j = 0; j < 3; j++) rect(x0 + 2 - j * 2, 211 + j, w - 4 + j * 4, 1, j === 0 ? stoneL : stone);
+}
+
 
 /* ============================================================
    FAR QUAY, BRIDGE, LAMPS, TREES
@@ -1107,7 +1137,7 @@ function drawCafe(h) {
 const BX0 = 436, BX1 = 564, BC = 500, BRA = 34, BRB = 19;
 const deckY = x => (x <= BX0 || x >= BX1) ? ST : ST - 10 * Math.sin(Math.PI * (x - BX0) / (BX1 - BX0));
 const feetY = x => Math.round(deckY(x)) + 5;
-const FAR_LAMPS = [118, 244, 354, 580];
+const FAR_LAMPS = [118, 220, 354, 580];
 const FAULTY_LAMP = 118;
 const FAR_TREES = [62, 300, 408, 616];
 const FAR_BIKES = [[128, 1], [312, -1], [336, 1], [592, -1]];
@@ -1287,17 +1317,6 @@ function drawBollards() {
     for (let y = 217; y <= 221; y++) { px(x, y, c); px(x + 1, y, y === 217 ? cL : c); }
     px(x, 216, cL);
   }
-}
-function drawCafeTerrace() {
-  use(Lfront, Mfront);
-  const d = C('#18161e');
-  for (const tx of [186, 206]) {
-    rect(tx - 1, 215, 4, 1, d); px(tx, 216, d); px(tx, 217, d); px(tx, 218, d); rect(tx - 1, 219, 3, 1, d);
-    px(tx - 3, 216, d); px(tx - 3, 217, d); px(tx - 3, 218, d); px(tx - 4, 219, d); px(tx - 2, 219, d);
-    px(tx + 1, 214, C('#ffd890'), 1);
-    glow(Afar, tx + 1.5, 214, 4, 3, WINL, 0.3, { bands: 2 });
-  }
-  rect(232, 213, 4, 7, C('#1a2220')); rect(233, 214, 2, 4, C('#2c3834'));
 }
 
 /* ============================================================
@@ -1665,7 +1684,6 @@ FAR_LAMPS.forEach(drawFarLamp);
 for (const [bx, d] of FAR_BIKES) drawSmallBike(bx, d, Lfront, Mfront);
 drawBollards();
 drawBridgeRail();
-drawCafeTerrace();
 const L0 = Lback.slice();          // facade colours before lighting, for window-switch deltas
 applyA(Lback, Mback, Afar);
 applyA(Lfront, Mfront, Afar);
