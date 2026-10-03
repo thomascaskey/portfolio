@@ -597,7 +597,7 @@ function skyBase(x, y) {
     if (y < y1 || k === SKY_STOPS.length - 2) return bay(x, y) < (y - y0) / (y1 - y0) ? c1 : c0;
   }
 }
-const MOON = { x: 566, y: 40, r: 7 };
+const MOON = { x: 420, y: 40, r: 7 };
 const CW = 1024, CH = 232, CLOUD_V = 3.2;
 const CT = new Float32Array(CW * CH);
 (function buildClouds() {
@@ -658,7 +658,7 @@ function drawSkyline() {
 }
 function drawTower() {   // a wide brick clock tower with a slate roof (the contact card)
   use(Lback, Mback);
-  const TX = 500, haze = C('#2a2d5a');
+  const TX = 512, haze = C('#2a2d5a');
   const hz = (h, k = 0.3) => mix(C(h), haze, k);
   const brick = hz('#4a2f3a'), brickL = hz('#6c4642'), brickD = hz('#2e1f2e');
   const stone = hz('#5c5570'), stoneL = hz('#7c7288'), stoneD = hz('#3a3550');
@@ -710,7 +710,7 @@ function drawSideCanal() {
   const R = rng(31);
   const cols = ['#1b2043', '#1e2448', '#191e3e', '#20264a'].map(C);
   const wins = ['#8a5a3a', '#a8703f', '#6a4636'].map(C), dark = C('#12162e');
-  let x = 448;
+  let x = 460;
   const ws = [17, 20, 15, 22, 18, 16];
   for (const w of ws) {
     const top = 156 + Math.floor(R() * 20), c = cols[Math.floor(R() * cols.length)], step = R() < 0.5;
@@ -728,7 +728,7 @@ function drawSideCanal() {
     x += w;
   }
   // hazy autumn trees along the side canal
-  for (let tx = 452; tx < 548; tx += 11 + Math.floor(R() * 6)) {
+  for (let tx = 464; tx < 556; tx += 11 + Math.floor(R() * 6)) {
     const hue = pickHue(R()), cy = 196 + R() * 4;
     for (let y = 186; y < 212; y++) for (let x2 = tx - 7; x2 <= tx + 7; x2++) {
       const d = Math.hypot((x2 - tx) / 7, (y - cy) / 9);
@@ -762,8 +762,8 @@ const HOUSES = [   // 8 houses: six wide canal houses, then Sharesies (bank) and
   { x: 220, w: 76, fl: 4, fh: 24, gable: 'neck', g: 34, m: 'brickB', lit: 0.55 },
   { x: 296, w: 80, fl: 4, fh: 25, gable: 'step', g: 36, m: 'brickD', steps: 4, chimney: 352, lit: 0.55 },
   { x: 376, w: 76, fl: 4, fh: 24, gable: 'bell', g: 30, m: 'green', lit: 0.45 },
-  { x: 548, w: 46, fl: 3, fh: 27, gable: 'pediment', g: 12, m: 'gray', shop: 'bank', lit: 0.55 },
-  { x: 594, w: 50, fl: 3, fh: 27, gable: 'step', g: 30, m: 'brickB', steps: 3, shop: 'books', lit: 0.6 },
+  { x: 556, w: 42, fl: 5, fh: 28, gable: 'pediment', g: 12, m: 'gray', shop: 'bank', lit: 0.55 },
+  { x: 598, w: 44, fl: 5, fh: 28, gable: 'step', g: 30, m: 'brickB', steps: 3, shop: 'books', lit: 0.6 },
 ];
 const SPECIAL = {
   '1:3:1': { dyn: 'cat', style: 'warm' },
@@ -1135,10 +1135,10 @@ function drawBank(h) {
 /* ============================================================
    FAR QUAY, BRIDGE, LAMPS, TREES
    ============================================================ */
-const BX0 = 436, BX1 = 564, BC = 500, BRA = 34, BRB = 19;
+const BX0 = 448, BX1 = 572, BC = 512, BRA = 34, BRB = 19;
 const deckY = x => (x <= BX0 || x >= BX1) ? ST : ST - 10 * Math.sin(Math.PI * (x - BX0) / (BX1 - BX0));
 const feetY = x => Math.round(deckY(x)) + 5;
-const FAR_LAMPS = [118, 220, 334, 594];
+const FAR_LAMPS = [118, 220, 334, 598];
 const FAULTY_LAMP = 118;
 const FAR_TREES = [62, 296, 420];
 const FAR_BIKES = [[128, 1], [312, -1], [336, 1], [592, -1]];
@@ -1322,7 +1322,7 @@ function drawBollards() {
 /* ============================================================
    HOUSEBOAT
    ============================================================ */
-const BOAT = { x0: 268, x1: 452, top: 279, bot: 294, cab0: 302, cab1: 444, cabTop: 253, pipeX: 434 };
+const BOAT = { x0: 236, x1: 420, top: 279, bot: 294, cab0: 270, cab1: 412, cabTop: 253, pipeX: 402 };
 function drawBoat() {
   use(Lboat, Mboat);
   const B = BOAT;
@@ -1341,7 +1341,7 @@ function drawBoat() {
     }
   }
   // old tyres as fenders
-  for (const fx of [300, 348, 422]) {
+  for (const fx of [268, 316, 390]) {
     for (let a = 0; a < 16; a++) px(fx + Math.cos(a / 16 * TAU) * 2.5, 284 + Math.sin(a / 16 * TAU) * 2.5, C('#07080d'));
     px(fx - 2, 282, C('#262a3a')); line(fx, 279, fx, 281, C('#2a2a30'));
   }
@@ -1350,11 +1350,11 @@ function drawBoat() {
   for (let x = B.x0 + 4; x < B.cab0; x++) px(x, 271, C('#262a3c'));
   for (let x = B.x0 + 4; x < B.cab0; x += 6) for (let y = 272; y < B.top - 1; y++) px(x, y, C('#1c1f2c'));
   const wood = C('#2a1c1c'), woodL = C('#3e2a26');
-  line(274, 277, 276, 272, wood); line(276, 272, 281, 272, woodL); line(280, 272, 281, 277, wood); line(276, 272, 274, 266, wood); line(274, 266, 275, 265, woodL);
-  rect(285, 271, 6, 6, C('#4a2a22')); rect(285, 271, 6, 1, C('#6a3a2a'));
+  line(242, 277, 244, 272, wood); line(244, 272, 249, 272, woodL); line(248, 272, 249, 277, wood); line(244, 272, 242, 266, wood); line(242, 266, 243, 265, woodL);
+  rect(253, 271, 6, 6, C('#4a2a22')); rect(253, 271, 6, 1, C('#6a3a2a'));
   const deckLight = (X, Y) => lumA(Anear, X, Y) * 2 + 0.15;
-  leafBlob(288, 265, 5, 0, deckLight, 9, 0.1, 1.5);
-  rect(297, 270, 4, 5, C('#4a2a22')); leafBlob(299, 267, 3.2, 1, deckLight, 5, 0.1, 1.5);
+  leafBlob(256, 265, 5, 0, deckLight, 9, 0.1, 1.5);
+  rect(265, 270, 4, 5, C('#4a2a22')); leafBlob(267, 267, 3.2, 1, deckLight, 5, 0.1, 1.5);
   // cabin planks
   const board = C('#1a3032'), boardL = C('#22393b'), boardD = C('#0f1f23'), post = C('#0e1a1e');
   for (let y = B.cabTop; y < B.top; y++) for (let x = B.cab0; x <= B.cab1; x++) {
@@ -1363,7 +1363,7 @@ function drawBoat() {
   }
   for (let x = B.cab0 - 2; x <= B.cab1 + 2; x++) { px(x, 249, C('#3c4260')); px(x, 250, C('#20232f')); px(x, 251, C('#20232f')); px(x, 252, C('#101218')); }
   // windows with warm interiors
-  const bw = [310, 330, 374, 396, 418];
+  const bw = [278, 298, 342, 364, 386];
   bw.forEach((wx, i) => {
     rect(wx - 1, 256, 13, 11, C('#2c2a30'));
     const st = { lit: true, style: i === 3 ? 'amber' : i === 1 ? 'gold' : 'warm', deco: i === 0 ? 'plant' : i === 4 ? 'curtain' : '' };
@@ -1379,22 +1379,22 @@ function drawBoat() {
     glow(Anear, wx + 5.5, 270, 10, 5, WINL, 0.3, { bands: 2 });
   });
   // door with porthole
-  rect(352, 255, 12, 23, C('#1a1418')); rect(353, 256, 10, 22, C('#3a2420'));
-  for (let y = 258; y < 277; y += 5) for (let x = 354; x < 362; x++) px(x, y, C('#2c1c1a'));
-  for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) { const d = Math.hypot(dx, dy); if (d < 2.6) px(358 + dx, 262 + dy, d > 1.6 ? C('#6a6070') : C('#ffc46a'), d <= 1.6 ? 1 : 0); }
-  px(355, 268, C('#c8a050'));
+  rect(320, 255, 12, 23, C('#1a1418')); rect(321, 256, 10, 22, C('#3a2420'));
+  for (let y = 258; y < 277; y += 5) for (let x = 322; x < 330; x++) px(x, y, C('#2c1c1a'));
+  for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) { const d = Math.hypot(dx, dy); if (d < 2.6) px(326 + dx, 262 + dy, d > 1.6 ? C('#6a6070') : C('#ffc46a'), d <= 1.6 ? 1 : 0); }
+  px(323, 268, C('#c8a050'));
   // stove pipe
   for (let y = 233; y < 249; y++) { px(B.pipeX, y, C('#16151c')); px(B.pipeX + 1, y, C('#2a2630')); }
   rect(B.pipeX - 2, 231, 6, 2, C('#1c1a22')); rect(B.pipeX - 1, 230, 4, 1, C('#302c36'));
   rect(B.pipeX - 1, 247, 4, 2, C('#1c1a22'));
   // roof garden
-  const pots = [[308, 1], [321, 2], [344, 0], [389, 3], [410, 1]];
+  const pots = [[276, 1], [289, 2], [312, 0], [357, 3], [378, 1]];
   for (const [x, hue] of pots) {
     rect(x - 2, 246, 5, 3, C('#5a2e24')); px(x - 2, 246, C('#7a4230'));
-    leafBlob(x, 241 - (x === 321 ? 3 : 0), x === 321 ? 5 : 3.5, hue, (X, Y, nx, ny) => lumA(Anear, X, Y) * 2 + 0.1, x, 0.15, 1.6);
+    leafBlob(x, 241 - (x === 289 ? 3 : 0), x === 289 ? 5 : 3.5, hue, (X, Y, nx, ny) => lumA(Anear, X, Y) * 2 + 0.1, x, 0.15, 1.6);
   }
   // fairy lights between three posts
-  const posts = [304, 372, 441];
+  const posts = [272, 340, 409];
   for (const p of posts) for (let y = 239; y < 249; y++) px(p, y, C('#1a1a22'));
   const bulbCols = ['#ffd27a', '#ffb85a', '#ffe9a8', '#ff9a5a'].map(C);
   let bi = 0;
@@ -1422,7 +1422,7 @@ const PUDDLES = [
   { x: 194, y: 352, rx: 30, ry: 5, lamp: 178 },
   { x: 318, y: 331, rx: 36, ry: 4.5 },
   { x: 92, y: 324, rx: 22, ry: 3.5 },
-  { x: 452, y: 348, rx: 40, ry: 5.5, bridge: true },
+  { x: 464, y: 348, rx: 40, ry: 5.5, bridge: true },
   { x: 620, y: 354, rx: 22, ry: 4, lamp: 606 },
   { x: 548, y: 316, rx: 22, ry: 3 },
 ];
@@ -1715,12 +1715,12 @@ for (const lx of NEAR_LAMPS) drawNearLamp(lx);
 drawNearStreet();
 drawPuddles();
 drawGroundLeaves();
-drawNearBollard(238, 312); drawNearBollard(452, 309); drawNearBollard(628, 316);
+drawNearBollard(206, 312); drawNearBollard(420, 309); drawNearBollard(628, 316);
 drawBike(136, 348, 1, C('#1a3236'), 3);
 drawBike(512, 340, 1, C('#101219'), 4);
 drawBike(556, 347, -1, C('#4a1e24'), 5);
 for (const lx of NEAR_LAMPS) drawNearLamp(lx, true);   // redraw so posts sit in front of street and bikes
-drawKiwi(484, 318);
+drawKiwi(452, 318);
 drawElm();
 applyA(Lboat, Mboat, Anear);
 applyA(Lnear, Mnear, Anear);
