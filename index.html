@@ -769,15 +769,15 @@ function mat(name) {
   const m = MATS[name];
   return { base: C(m[0]), dark: C(m[1]), lite: C(m[2]), brick: m[3], trim: C(m[4]), trimL: mix(C(m[4]), C('#9aa4c4'), 0.4), trimD: mix(C(m[4]), C(m[1]), 0.5), frame: C(m[5]) };
 }
-const HOUSES = [   // 8 houses: canal houses of mixed sizes with the Co-operative Bank (bank, No. 05) and Sharesies (No. 07) left of the bridge, the Goodnotes bookshop past it; none touch the bridge
+const HOUSES = [   // 8 houses, each with a shopfront for its app; the Goodnotes school stands past the bridge and nothing touches the bridge
   { x: -8,  w: 78, fl: 4, fh: 25, gable: 'step', g: 34, m: 'brickR', steps: 3, lit: 0.45 },
-  { x: 70,  w: 54, fl: 5, fh: 22, gable: 'bell', g: 28, m: 'cream', lit: 0.6 },
-  { x: 124, w: 72, fl: 3, fh: 26, gable: 'cornice', g: 5, m: 'black', chimney: 182, lit: 0.35 },
-  { x: 196, w: 60, fl: 4, fh: 23, gable: 'neck', g: 32, m: 'brickB', lit: 0.55 },
+  { x: 70,  w: 54, fl: 5, fh: 22, gable: 'bell', g: 28, m: 'cream', shop: 'records', lit: 0.6 },
+  { x: 124, w: 72, fl: 3, fh: 26, gable: 'cornice', g: 5, m: 'black', chimney: 182, shop: 'phones', lit: 0.35 },
+  { x: 196, w: 60, fl: 4, fh: 23, gable: 'neck', g: 32, m: 'brickB', shop: 'news', lit: 0.55 },
   { x: 256, w: 60, fl: 3, fh: 28, gable: 'pediment', g: 14, m: 'gray', shop: 'bank', lit: 0.55 },
-  { x: 316, w: 54, fl: 4, fh: 25, gable: 'bell', g: 26, m: 'green', lit: 0.45 },
-  { x: 370, w: 84, fl: 3, fh: 24, gable: 'step', g: 38, m: 'brickD', steps: 4, chimney: 428, lit: 0.55 },
-  { x: 572, w: 62, fl: 4, fh: 28, gable: 'step', g: 32, m: 'brickB', steps: 3, shop: 'books', lit: 0.6 },
+  { x: 316, w: 54, fl: 4, fh: 25, gable: 'bell', g: 26, m: 'green', shop: 'garage', lit: 0.45 },
+  { x: 370, w: 84, fl: 3, fh: 24, gable: 'cornice', g: 5, m: 'brickR', chimney: 440, shop: 'beurs', lit: 0.55 },
+  { x: 572, w: 62, fl: 4, fh: 28, gable: 'step', g: 32, m: 'brickB', steps: 3, shop: 'school', lit: 0.6 },
 ];
 const SPECIAL = {
   '1:3:1': { dyn: 'cat', style: 'warm' },
@@ -1036,7 +1036,7 @@ function drawHouse(h, hi) {
     if (!m.brick && f > 0) for (let x = x0 + 1; x < x0 + w; x++) px(x, rt, m.lite);
     for (let k = 0; k < nW; k++) drawWindow(Math.round(x0 + gap * (k + 1) + ww * k), wy, ww, wh, winState(hi, f, k, h), m);
   }
-  if (h.shop === 'books') drawBookshop(h); else if (h.shop === 'bank') drawBank(h); else groundFloor(h, hi);
+  if (h.shop) SHOPS[h.shop](h); else groundFloor(h, hi);
 }
 
 function groundFloor(h, hi) {
@@ -1066,51 +1066,174 @@ function groundFloor(h, hi) {
 }
 
 const FONT = { C: ['###', '#..', '#..', '#..', '###'], A: ['.#.', '#.#', '###', '#.#', '#.#'], F: ['###', '#..', '##.', '#..', '#..'], E: ['###', '#..', '##.', '#..', '###'],
-  B: ['##.', '#.#', '##.', '#.#', '##.'], O: ['###', '#.#', '#.#', '#.#', '###'], K: ['#.#', '#.#', '##.', '#.#', '#.#'], S: ['###', '#..', '###', '..#', '###'], N: ['#.#', '###', '###', '#.#', '#.#'] };
+  B: ['##.', '#.#', '##.', '#.#', '##.'], O: ['###', '#.#', '#.#', '#.#', '###'], K: ['#.#', '#.#', '##.', '#.#', '#.#'], S: ['###', '#..', '###', '..#', '###'], N: ['#.#', '###', '###', '#.#', '#.#'],
+  R: ['##.', '#.#', '##.', '#.#', '#.#'], D: ['##.', '#.#', '#.#', '#.#', '##.'], P: ['##.', '#.#', '##.', '#..', '#..'], H: ['#.#', '#.#', '###', '#.#', '#.#'],
+  L: ['#..', '#..', '#..', '#..', '###'], G: ['.##', '#..', '#.#', '#.#', '.##'], U: ['#.#', '#.#', '#.#', '#.#', '###'], W: ['#.#', '#.#', '#.#', '###', '#.#'] };
 function sign(text, cx, y, c, nl = 1) {
   let lx = Math.round(cx - (text.length * 4 - 1) / 2);
   for (const ch of text) { FONT[ch].forEach((row, j) => { for (let i = 0; i < 3; i++) if (row[i] === '#') px(lx + i, y + j, c, nl); }); lx += 4; }
 }
-// Goodnotes: a bookshop with a gold-lettered fascia and a lit window of shelves
-function drawBookshop(h) {
-  const x0 = h.x, w = h.w;
-  const green = C('#173a2e'), greenL = C('#24503f'), greenD = C('#0e241c'), gold = C('#e2bc62'), goldD = C('#9a7a3a');
-  rect(x0 + 2, 184, w - 4, 30, green);
-  for (let y = 184; y < 214; y++) { px(x0 + 2, y, greenD); px(x0 + w - 3, y, greenL); }
-  // fascia
-  rect(x0 + 3, 185, w - 6, 8, greenD);
-  for (let x = x0 + 3; x < x0 + w - 3; x++) { px(x, 185, goldD); px(x, 192, goldD); }
-  sign('BOOKS', x0 + w / 2 - 6, 187, gold);
-  // display window: shelves of books in warm light
-  const wx0 = x0 + 5, wx1 = x0 + w - 21, wy0 = 195, wy1 = 211, R = rng(4242);
-  const spines = ['#b04a36', '#3a5e92', '#d2a648', '#4a7e5c', '#8e4a7e', '#d8723a', '#ece0b8', '#5a3a6a'].map(C);
-  const G = LIT.warm;
-  for (let y = wy0; y <= wy1; y++) for (let x = wx0; x <= wx1; x++) {
-    const v = (y - wy0) / (wy1 - wy0) * 2 + 0.7 + (bay(x, y) - 0.5);
+// a warm lit shop window, brighter toward the bottom
+function litBox(x0, x1, y0, y1, G, k = 2) {
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+    const v = (y - y0) / Math.max(1, y1 - y0) * k + 0.6 + (bay(x, y) - 0.5);
     px(x, y, G[clamp(Math.round(v), 0, 3)], 1);
   }
-  for (const sy of [200, 205, 210]) {
-    for (let x = wx0; x <= wx1; x++) px(x, sy, C('#5a3420'), 1);
-    let x = wx0 + 1;
-    while (x < wx1) {
-      const bw = R() < 0.25 ? 2 : 1, hgt = 3 + (R() < 0.5 ? 1 : 0), c = mix(spines[Math.floor(R() * spines.length)], G[2], 0.18);
-      if (R() < 0.1) { x += 2; continue; }   // a gap on the shelf
-      for (let i = 0; i < bw && x + i < wx1; i++) for (let j = 1; j <= hgt; j++) px(x + i, sy - j, c, 1);
-      x += bw;
+}
+function shopBase(h, body, fascia, edge, text, ink) {   // shop body, a fascia board with lettering, returns nothing
+  const x0 = h.x, w = h.w;
+  rect(x0 + 2, 184, w - 4, 30, body);
+  for (let y = 184; y < 214; y++) { px(x0 + 2, y, mix(body, C('#000000'), 0.4)); px(x0 + w - 3, y, mix(body, C('#ffffff'), 0.12)); }
+  rect(x0 + 3, 185, w - 6, 8, fascia);
+  for (let x = x0 + 3; x < x0 + w - 3; x++) { px(x, 185, edge); px(x, 192, edge); }
+  sign(text, x0 + w / 2, 187, ink);
+}
+function shopDoor(dx, body, G) {   // a glazed shop door, 9 wide
+  rect(dx, 194, 9, 20, mix(body, C('#000000'), 0.45));
+  for (let y = 196; y <= 211; y++) for (let x = dx + 2; x <= dx + 6; x++) px(x, y, y === 203 ? body : G[y < 200 ? 1 : 2], 1);
+  px(dx + 2, 205, C('#d0a858'));
+  STOOPS.push({ x: dx - 3, w: 15 });
+}
+// RNZ: a record shop with a neon sign, sleeves in the window and a spinning-ready disc
+function drawRecords(h) {
+  const x0 = h.x, w = h.w, body = C('#2a1a2e'), G = LIT.amber;
+  shopBase(h, body, C('#120c16'), C('#4a2a4a'), 'RECORDS', C('#ff7ab4'));
+  glow(Afar, x0 + w / 2, 189, 22, 6, C('#ff6aa8'), 0.35, { bands: 3, lm: LM, lmI: 0.2 });
+  const wx0 = x0 + 5, wx1 = x0 + w - 16, R = rng(515);
+  litBox(wx0, wx1, 195, 211, G);
+  const sleeves = ['#d8483a', '#2e6aa8', '#e8c050', '#3a8a5a', '#a04a9a', '#ece0c0'].map(C);
+  for (let x = wx0 + 1; x + 5 <= wx1; x += 7) {
+    const c = sleeves[Math.floor(R() * sleeves.length)];
+    rect(x, 197, 6, 6, c, 1); px(x + 2, 199, mix(c, C('#ffffff'), 0.4), 1); px(x + 3, 200, mix(c, C('#000000'), 0.3), 1);
+  }
+  const vx = wx0 + 7, vy = 207;
+  for (let dy = -4; dy <= 4; dy++) for (let dx = -4; dx <= 4; dx++) {
+    const d = Math.hypot(dx, dy);
+    if (d < 4.6) px(vx + dx, vy + dy, d < 2.3 ? C('#e04a3a') : (d > 3.1 && d < 3.7) ? C('#2a2a32') : C('#0c0c10'), 1);   // round label, never a plus
+  }
+  for (let x = wx0; x <= wx1; x++) { px(x, 194, C('#4a2a4a')); px(x, 212, C('#120c16')); }
+  shopDoor(x0 + w - 13, body, G);
+  glow(Afar, (wx0 + wx1) / 2, 203, 26, 20, WINL, 0.4, { bands: 4, pow: 1.5, lm: LM, lmI: 0.5 });
+}
+// 2degrees: a phone shop with a row of lit screens in the window
+function drawPhones(h) {
+  const x0 = h.x, w = h.w, body = C('#232a44'), G = LIT.gold;
+  shopBase(h, body, C('#141a36'), C('#3e4a7a'), 'PHONES', C('#ffd68a'));
+  const wx0 = x0 + 5, wx1 = x0 + w - 16;
+  for (let y = 195; y <= 211; y++) for (let x = wx0; x <= wx1; x++) px(x, y, mix(C('#c8d2f0'), C('#8a96c4'), (y - 195) / 16 + (bay(x, y) - 0.5) * 0.3), 1);
+  const screens = ['#4ad0e8', '#ffb04a', '#7ae08a', '#ff7ab4', '#a08aff'].map(C);
+  for (const sy of [197, 204]) {
+    for (let x = wx0; x <= wx1; x++) px(x, sy + 7, C('#5a6488'), 1);
+    let k = sy;
+    for (let x = wx0 + 2; x + 3 <= wx1; x += 6) {
+      rect(x, sy, 4, 7, C('#14161e'), 1);
+      rect(x + 1, sy + 1, 2, 4, screens[k++ % screens.length], 1);
     }
   }
-  for (let y = wy0; y <= wy1; y++) px(Math.round((wx0 + wx1) / 2), y, greenD, 1);
-  for (let x = wx0 - 1; x <= wx1 + 1; x++) { px(x, wy0 - 1, gold); px(x, wy1 + 1, greenD); }
-  // glazed door with a brass handle
-  const dx = x0 + w - 17;
-  rect(dx, 194, 12, 20, greenD);
-  for (let y = 196; y <= 211; y++) for (let x = dx + 2; x <= dx + 9; x++) px(x, y, y === 203 ? greenD : G[y < 200 ? 1 : 2], 1);
-  px(dx + 2, 205, gold);
-  glow(Afar, (wx0 + wx1) / 2, 203, 36, 24, WINL, 0.5, { bands: 5, pow: 1.5, lm: LM, lmI: 0.6 });
-  glow(Afar, x0 + w / 2, 217, 34, 6, WINL, 0.45, { bands: 4, pow: 1.2, lm: LM, lmI: 0.3 });
-  STOOPS.push({ x: dx - 3, w: 18 });
+  for (let x = wx0; x <= wx1; x++) { px(x, 194, C('#3e4a7a')); px(x, 212, C('#141a36')); }
+  shopDoor(x0 + w - 13, body, G);
+  glow(Afar, (wx0 + wx1) / 2, 203, 30, 20, C('#c8d8ff'), 0.4, { bands: 4, pow: 1.5, lm: LM, lmI: 0.5 });
 }
-// Sharesies: a stone bank with columns, an engraved name and a lit doorway
+// TVNZ: a newsagent with a striped awning, magazines, a stack of papers and a headline board
+function drawNews(h) {
+  const x0 = h.x, w = h.w, body = C('#3a1e22'), G = LIT.warm;
+  shopBase(h, body, C('#ece0c4'), C('#a8986e'), 'NEWS', C('#b02a2a'));
+  for (let j = 0; j < 4; j++) for (let x = x0 + 1 - j; x < x0 + w - 1 + j; x++) {
+    const red = Math.floor((x - x0 + 40) / 4) & 1;
+    if (j === 3 && (x & 1)) continue;   // scalloped edge
+    px(x, 193 + j, red ? C('#b03030') : C('#e8dcc0'));
+  }
+  const wx0 = x0 + 5, wx1 = x0 + w - 16, R = rng(808);
+  litBox(wx0, wx1, 198, 211, G);
+  const mags = ['#d84a3a', '#3a6ab0', '#e8c04a', '#4a9a6a', '#c060a0', '#f0f0e8'].map(C);
+  for (let x = wx0 + 1; x <= wx1 - 1; x += 3) { const c = mags[Math.floor(R() * mags.length)]; rect(x, 200, 2, 5, c, 1); px(x, 201, mix(c, C('#ffffff'), 0.5), 1); }
+  for (let j = 0; j < 4; j++) { rect(wx0 + 2, 210 - j, 10, 1, j % 2 ? C('#d8d0c0') : C('#f4eee0'), 1); px(wx0 + 4 + j, 210 - j, C('#6a6a72'), 1); }
+  for (let x = wx0; x <= wx1; x++) px(x, 212, C('#1c1012'));
+  const dx = x0 + w - 13;
+  shopDoor(dx, body, G);
+  // headline board on the pavement
+  const bx = dx - 6;
+  for (let j = 0; j < 7; j++) rect(bx - Math.floor(j / 3), 206 + j, 5 + 2 * Math.floor(j / 3), 1, j === 0 ? C('#2a2a30') : C('#efe6d0'));
+  rect(bx, 208, 4, 1, C('#b02a2a')); rect(bx, 210, 3, 1, C('#4a4a52'));
+  glow(Afar, (wx0 + wx1) / 2, 205, 24, 16, WINL, 0.4, { bands: 4, pow: 1.5, lm: LM, lmI: 0.5 });
+}
+// Drive Go: a garage with the roller door half up and a car inside
+function drawGarage(h) {
+  const x0 = h.x, w = h.w, body = C('#2c2226'), G = LIT.warm;
+  shopBase(h, body, C('#5a1a1a'), C('#2a0c0c'), 'GARAGE', C('#f4e2b0'));
+  const ox0 = x0 + 5, ox1 = x0 + w - 6;
+  litBox(ox0, ox1, 201, 213, G, 1.5);
+  for (let y = 194; y <= 200; y++) for (let x = ox0; x <= ox1; x++) px(x, y, y === 200 ? C('#20242e') : (y & 1) ? C('#4a5266') : C('#3a4256'));
+  const cx = Math.round((ox0 + ox1) / 2), car = C('#2a3a6a'), carL = C('#3a4e88');
+  rect(cx - 13, 204, 26, 6, car); rect(cx - 13, 204, 26, 1, carL); rect(cx + 11, 206, 2, 1, C('#ffe9a8'));
+  for (const wx of [cx - 8, cx + 8]) for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) if (dx * dx + dy * dy < 6) px(wx + dx, 211 + dy, dx === 0 && dy === 0 ? C('#6a6a72') : C('#0c0c10'), 1);
+  rect(ox1 - 4, 207, 3, 6, C('#7a2a22'), 1); rect(ox1 - 4, 209, 3, 1, C('#a8a8b0'), 1);   // oil drum
+  for (let y = 194; y <= 213; y++) { px(ox0 - 1, y, C('#16121a')); px(ox1 + 1, y, C('#16121a')); }
+  glow(Afar, cx, 208, 30, 12, WINL, 0.45, { bands: 4, pow: 1.4, lm: LM, lmI: 0.5 });
+  glow(Afar, cx, 217, 30, 5, WINL, 0.35, { bands: 3, lm: LM, lmI: 0.3 });
+}
+// Sharesies: the stock exchange, after Berlage's Beurs on the Damrak: brick, stone bands, round arches, a corner tower and a ticker
+function drawBeurs(h) {
+  const x0 = h.x, w = h.w, m = h.mc, G = LIT.gold;
+  const brick = C('#4a2228'), brickD = C('#34171c'), stone = C('#8a8478'), stoneL = C('#aaa494'), stoneD = C('#5e5a52');
+  // corner tower above the roofline
+  const tx0 = x0 + 3, tw = 16, ty = h.bt - 34;
+  for (let y = ty; y < h.bt; y++) for (let x = tx0; x < tx0 + tw; x++) px(x, y, x === tx0 ? brickD : x === tx0 + tw - 1 ? m.lite : (y % 4 === 0 || (x + (y >> 2)) % 5 === 0) ? brickD : brick);
+  for (const sy of [ty + 10, ty + 22]) for (let x = tx0 - 1; x <= tx0 + tw; x++) px(x, sy, stoneL);
+  for (const ox of [tx0 + 4, tx0 + 9]) { for (let y = ty + 13; y <= ty + 20; y++) { px(ox, y, C('#0e0c14')); px(ox + 1, y, C('#0e0c14')); px(ox + 2, y, C('#0e0c14')); } px(ox + 1, ty + 12, C('#0e0c14')); }
+  rect(tx0 + 6, ty + 3, 4, 4, C('#e8d6a0'), 1); px(tx0 + 7, ty + 4, C('#3a2a1a'), 1); px(tx0 + 8, ty + 5, C('#3a2a1a'), 1);   // small lit clock
+  glow(Afar, tx0 + 8, ty + 5, 6, 6, C('#ffd89a'), 0.25, { bands: 2, lm: LM, lmI: 0.2 });
+  for (let j = 0; j < 7; j++) for (let x = tx0 + j; x < tx0 + tw - j; x++) px(x, ty - 1 - j, j === 0 ? stoneL : (x === tx0 + tw - 1 - j ? C('#3a4060') : C('#262a44')));
+  px(tx0 + 7, ty - 8, C('#d8b860')); px(tx0 + 8, ty - 8, C('#d8b860'));
+  // ground floor: stone band with the name, a ticker, and a brick arcade
+  rect(x0 + 1, 184, w - 2, 30, brick);
+  rect(x0 + 1, 184, w - 2, 6, stone);
+  for (let x = x0; x < x0 + w; x++) { px(x, 184, stoneL); px(x, 189, stoneD); }
+  sign('BEURS', x0 + w / 2, 185, C('#2a1a14'));
+  rect(x0 + 4, 191, w - 8, 3, C('#08100c'));
+  const tick = ['#4ae07a', '#4ae07a', '#e85a4a', '#4ae07a', '#e8c04a'].map(C);
+  for (let x = x0 + 5; x < x0 + w - 4; x += 2) if (h2(x, 3) < 0.55) px(x, 192, tick[Math.floor(h2(x, 9) * tick.length)], 1);
+  const n = 3, aw = 18, gap = (w - 6 - n * aw) / (n + 1);
+  for (let k = 0; k < n; k++) {
+    const ax0 = Math.round(x0 + 3 + gap * (k + 1) + aw * k), acx = ax0 + aw / 2 - 0.5;
+    for (let y = 196; y <= 211; y++) for (let x = ax0; x < ax0 + aw; x++) {
+      const dy = y - 204, d = Math.hypot((x - acx) / (aw / 2), Math.min(0, dy) / 8);
+      if (dy < 0 && d > 1) continue;
+      if (d > 0.82 || x === ax0 || x === ax0 + aw - 1) px(x, y, (dy < 0 && d > 0.82) ? ((Math.floor(Math.atan2(dy, x - acx) * 4) & 1) ? stone : stoneL) : stoneD);
+      else px(x, y, k === 1 && x > acx - 4 && x < acx + 4 && y > 201 ? C('#3a2416') : G[clamp(Math.round((y - 196) / 15 * 2 + 0.7 + (bay(x, y) - 0.5)), 0, 3)], 1);
+    }
+    glow(Afar, acx, 205, 11, 10, WINL, 0.3, { bands: 3, lm: LM, lmI: 0.4 });
+  }
+  for (let j = 0; j < 2; j++) rect(x0 + 2 - j, 212 + j, w - 4 + 2 * j, 1, j ? stoneD : stone);
+}
+// Goodnotes: a school with a lit classroom (chalkboard and globe) and a double door
+function drawSchool(h) {
+  const x0 = h.x, w = h.w, body = C('#3a2c30'), G = LIT.warm;
+  shopBase(h, body, C('#1c2a4a'), C('#3a4a7a'), 'SCHOOL', C('#f4e6b8'));
+  const wx0 = x0 + 5, wx1 = x0 + w - 19;
+  litBox(wx0, wx1, 195, 211, G);
+  rect(wx0 + 2, 197, wx1 - wx0 - 3, 7, C('#1e3a2c'), 1);
+  for (let x = wx0 + 2; x < wx1 - 1; x++) px(x, 204, C('#6a4a2a'), 1);
+  const R = rng(321);
+  for (let x = wx0 + 4; x < wx1 - 3; x += 3) { px(x, 199, C('#e8ece0'), 1); if (R() < 0.6) px(x + 1, 199, C('#c8ccc0'), 1); if (R() < 0.5) px(x, 201, C('#c8ccc0'), 1); }
+  const gx = wx1 - 4, gy = 207;
+  for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) if (dx * dx + dy * dy < 6) px(gx + dx, gy + dy, (dx + dy) & 1 ? C('#3a7a5a') : C('#3a6aa8'), 1);
+  px(gx, gy + 3, C('#6a4a2a'), 1); rect(gx - 1, gy + 4, 3, 1, C('#6a4a2a'), 1);
+  for (let x = wx0 + 2; x < wx0 + 14; x += 4) { rect(x, 208, 3, 1, C('#7a5030'), 1); px(x, 209, C('#5a3a20'), 1); px(x + 2, 209, C('#5a3a20'), 1); }
+  for (let x = wx0; x <= wx1; x++) { px(x, 194, C('#3a4a7a')); px(x, 212, C('#14101a')); }
+  // double door under a lit fanlight
+  const dx = x0 + w - 16, door = C('#1c2a4a');
+  rect(dx, 193, 12, 21, mix(body, C('#000000'), 0.4));
+  for (let i = 0; i < 10; i++) for (let j = 0; j < 3; j++) px(dx + 1 + i, 194 + j, j === 0 && (i < 2 || i > 7) ? mix(body, C('#000000'), 0.4) : G[2 - j % 2], 1);
+  rect(dx + 1, 197, 10, 16, door);
+  for (let y = 198; y <= 211; y++) px(dx + 6, y, C('#0e1428'));
+  rect(dx + 2, 199, 3, 5, G[1], 1); rect(dx + 7, 199, 3, 5, G[1], 1);
+  px(dx + 5, 206, C('#d0a858')); px(dx + 7, 206, C('#d0a858'));
+  for (let j = 0; j < 2; j++) rect(dx - 1 - j, 212 + j, 14 + 2 * j, 1, j ? C('#3a3e52') : C('#5a5e74'));
+  STOOPS.push({ x: dx - 3, w: 18 });
+  glow(Afar, (wx0 + wx1) / 2, 203, 26, 20, WINL, 0.45, { bands: 4, pow: 1.5, lm: LM, lmI: 0.6 });
+}
+// The Co-operative Bank: a stone bank with columns, an engraved name and a lit doorway
 function drawBank(h) {
   const x0 = h.x, w = h.w, m = h.mc;
   const stone = mix(m.base, C('#8a90b0'), 0.35), stoneL = mix(m.base, C('#b0b6d0'), 0.5), stoneD = mix(m.base, C('#14172a'), 0.35);
@@ -1144,6 +1267,7 @@ function drawBank(h) {
   // broad steps
   for (let j = 0; j < 3; j++) rect(x0 + 2 - j * 2, 211 + j, w - 4 + j * 4, 1, j === 0 ? stoneL : stone);
 }
+const SHOPS = { bank: drawBank, records: drawRecords, phones: drawPhones, news: drawNews, garage: drawGarage, beurs: drawBeurs, school: drawSchool };
 
 
 /* ============================================================
@@ -1152,10 +1276,10 @@ function drawBank(h) {
 const BX0 = 460, BX1 = 564, BC = 512, BRA = 34, BRB = 19;
 const deckY = x => (x <= BX0 || x >= BX1) ? ST : ST - 10 * Math.sin(Math.PI * (x - BX0) / (BX1 - BX0));
 const feetY = x => Math.round(deckY(x)) + 5;
-const FAR_LAMPS = [118, 220, 334, 568];
-const FAULTY_LAMP = 118;
+const FAR_LAMPS = [122, 254, 370, 568];
+const FAULTY_LAMP = 122;
 const FAR_TREES = [70, 196, 316];
-const FAR_BIKES = [[128, 1], [312, -1], [336, 1], [592, -1]];
+const FAR_BIKES = [[128, 1], [300, -1], [456, 1], [628, -1]];
 const BULBS = [];
 
 function drawFarStreet() {
