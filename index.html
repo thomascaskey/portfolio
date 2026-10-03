@@ -597,7 +597,7 @@ function skyBase(x, y) {
     if (y < y1 || k === SKY_STOPS.length - 2) return bay(x, y) < (y - y0) / (y1 - y0) ? c1 : c0;
   }
 }
-const MOON = { x: 330, y: 36, r: 7 };
+const MOON = { x: 430, y: 40, r: 7 };
 const CW = 1024, CH = 232, CLOUD_V = 3.2;
 const CT = new Float32Array(CW * CH);
 (function buildClouds() {
@@ -755,13 +755,13 @@ function mat(name) {
   const m = MATS[name];
   return { base: C(m[0]), dark: C(m[1]), lite: C(m[2]), brick: m[3], trim: C(m[4]), trimL: mix(C(m[4]), C('#9aa4c4'), 0.4), trimD: mix(C(m[4]), C(m[1]), 0.5), frame: C(m[5]) };
 }
-const HOUSES = [   // 8 houses: six canal houses and the Sharesies bank left of the bridge, the Goodnotes bookshop past it; none touch the bridge
-  { x: -8,  w: 68, fl: 4, fh: 24, gable: 'step', g: 32, m: 'brickR', steps: 3, lit: 0.45 },
-  { x: 60,  w: 66, fl: 4, fh: 23, gable: 'bell', g: 30, m: 'cream', lit: 0.6 },
-  { x: 126, w: 68, fl: 4, fh: 25, gable: 'cornice', g: 5, m: 'black', chimney: 182, lit: 0.35 },
-  { x: 194, w: 66, fl: 4, fh: 24, gable: 'neck', g: 34, m: 'brickB', lit: 0.55 },
-  { x: 260, w: 68, fl: 4, fh: 25, gable: 'step', g: 36, m: 'brickD', steps: 4, chimney: 314, lit: 0.55 },
-  { x: 328, w: 66, fl: 4, fh: 24, gable: 'bell', g: 30, m: 'green', lit: 0.45 },
+const HOUSES = [   // 8 houses: six canal houses of mixed sizes and the Sharesies bank left of the bridge, the Goodnotes bookshop past it; none touch the bridge
+  { x: -8,  w: 78, fl: 4, fh: 25, gable: 'step', g: 34, m: 'brickR', steps: 3, lit: 0.45 },
+  { x: 70,  w: 54, fl: 5, fh: 22, gable: 'bell', g: 28, m: 'cream', lit: 0.6 },
+  { x: 124, w: 72, fl: 3, fh: 26, gable: 'cornice', g: 5, m: 'black', chimney: 182, lit: 0.35 },
+  { x: 196, w: 60, fl: 4, fh: 23, gable: 'neck', g: 32, m: 'brickB', lit: 0.55 },
+  { x: 256, w: 84, fl: 5, fh: 24, gable: 'step', g: 38, m: 'brickD', steps: 4, chimney: 314, lit: 0.55 },
+  { x: 340, w: 54, fl: 3, fh: 25, gable: 'bell', g: 26, m: 'green', lit: 0.45 },
   { x: 394, w: 60, fl: 3, fh: 28, gable: 'pediment', g: 14, m: 'gray', shop: 'bank', lit: 0.55 },
   { x: 572, w: 62, fl: 4, fh: 28, gable: 'step', g: 32, m: 'brickB', steps: 3, shop: 'books', lit: 0.6 },
 ];
@@ -1140,7 +1140,7 @@ const deckY = x => (x <= BX0 || x >= BX1) ? ST : ST - 10 * Math.sin(Math.PI * (x
 const feetY = x => Math.round(deckY(x)) + 5;
 const FAR_LAMPS = [118, 220, 334, 568];
 const FAULTY_LAMP = 118;
-const FAR_TREES = [60, 260, 362];
+const FAR_TREES = [70, 196, 340];
 const FAR_BIKES = [[128, 1], [312, -1], [336, 1], [592, -1]];
 const BULBS = [];
 
