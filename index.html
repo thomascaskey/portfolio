@@ -34,19 +34,28 @@
     --pf-pixel: 'Pixelify Sans', ui-monospace, 'SF Mono', Menlo, monospace;
     --pf-acc: #f0a04a;
   }
-  #pf-tag {
-    position: fixed; left: 0; top: 0; transform: translate(-50%, -100%);
-    font: 600 13px/1 var(--pf-pixel); color: #fff2c4; letter-spacing: .04em; white-space: nowrap;
-    background: rgba(8, 10, 24, .86); padding: 7px 10px 6px; pointer-events: none;
-    box-shadow: 0 0 0 2px var(--pf-line), 0 0 0 4px rgba(8, 10, 24, .86);
-    opacity: 0; transition: opacity .15s steps(3);
+  /* a label above every building, always on; the highlighted one pops */
+  #pf-labels { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
+  #pf-labels[hidden] { display: none; }
+  .pf-label {
+    position: absolute; left: 0; top: 0; transform: translate(-50%, -100%) scale(.85); transform-origin: 50% calc(100% + 8px);
+    font: 600 11px/1 var(--pf-pixel); color: #ded6ee; letter-spacing: .04em; white-space: nowrap;
+    background: rgba(8, 10, 24, .74); padding: 5px 7px 4px; pointer-events: auto; cursor: pointer; opacity: .82;
+    box-shadow: 0 0 0 1px var(--pf-line), 0 0 0 3px rgba(8, 10, 24, .6);
+    transition: transform .14s steps(3), opacity .14s steps(3), box-shadow .14s steps(3), background .14s steps(3);
   }
-  #pf-tag.show { opacity: 1; }
-  #pf-tag::after {
-    content: ''; position: absolute; left: 50%; bottom: -8px; width: 4px; height: 4px; margin-left: -2px;
-    background: var(--pf-line); box-shadow: 0 -2px 0 rgba(8, 10, 24, .86);
+  .pf-label::after {
+    content: ''; position: absolute; left: 50%; bottom: -6px; width: 2px; height: 3px; margin-left: -1px; background: var(--pf-line);
   }
-  #pf-tag b { color: var(--pf-amber-hi); font-weight: 600; margin-right: 6px; }
+  .pf-label b { color: var(--pf-amber); font-weight: 600; margin-right: 5px; }
+  .pf-label.hot {
+    transform: translate(-50%, -100%) scale(1.18); opacity: 1; z-index: 1; color: #fff2c4; background: rgba(8, 10, 24, .94);
+    box-shadow: 0 0 0 2px var(--pf-amber-hi), 0 0 0 4px rgba(8, 10, 24, .9), 0 0 22px rgba(255, 195, 106, .5);
+  }
+  .pf-label.hot b { color: var(--pf-amber-hi); }
+  .pf-label.hot::after { background: var(--pf-amber-hi); }
+  @media (max-width: 760px) { .pf-label { font-size: 9px; padding: 4px 5px 3px; } }
+  @media (prefers-reduced-motion: reduce) { .pf-label { transition: none; } }
 
   .pf { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 24px; cursor: auto; }
   .pf[hidden] { display: none; }
@@ -225,7 +234,7 @@
 <canvas id="view"></canvas>
 <div id="toast"></div>
 <div id="hint">Click a house to open its project · Shift-click windows · L lights · R rain · F fullscreen</div>
-<div id="pf-tag"></div>
+<div id="pf-labels"></div>
 <div id="pf" class="pf" hidden role="dialog" aria-modal="true" aria-labelledby="pf-title">
   <div class="pf-scrim" data-close></div>
   <div class="pf-frame">
@@ -337,7 +346,7 @@ const PORTFOLIO = [
     links: [['Case study', 'https://www.alphero.com/case-studies/tvnz-case-study']],
   },
   {
-    title: 'The Co-operative Bank', kind: 'Mobile banking app', year: 'Alphero', accent: '#6fb8c8',
+    title: 'The Co-operative Bank', label: 'Co-op Bank', kind: 'Mobile banking app', year: 'Alphero', accent: '#6fb8c8',
     tagline: "Everyday mobile banking for The Co-operative Bank, New Zealand's customer-owned bank.",
     summary: "The Co-operative Bank's mobile banking app, designed and built at Alphero. Placeholder text: add what the app lets customers do, what you built on it, and the result.",
     role: 'iOS development at Alphero',
@@ -2556,6 +2565,7 @@ const PROJ = HOUSES.map((h, i) => {
     platform: d.platform || 'iOS 17+ · iPhone',
     stack: d.stack || ['Swift', 'SwiftUI', 'Combine', 'Core Data'],
     links: d.links || [['App Store', '#'], ['Case study', '#'], ['GitHub', '#']],
+    label: d.label || d.title || 'Coming soon',
   };
 });
 const AB = (typeof ABOUT !== 'undefined' && ABOUT) || {};
@@ -2604,26 +2614,33 @@ function drawHouseFocus() {
   for (const i of hp.body) { F[i] = F[i] * 1.08 + 6; F[i + 1] = F[i + 1] * 1.08 + 4; F[i + 2] = F[i + 2] * 1.04; }
   for (const i of hp.edge) { F[i] += (255 - F[i]) * a; F[i + 1] += (205 - F[i + 1]) * a; F[i + 2] += (120 - F[i + 2]) * a; }
 }
-const tag = document.getElementById('pf-tag');
-function placeTag(hi) {
-  const dpr = window.devicePixelRatio || 1, hp = HOUSE_PIX[hi];
-  const x = clamp((DX + hp.cx / W * DW) / dpr, 80, innerWidth - 80), y = Math.max(44, (DY + (hp.top - 4) / H * DH) / dpr);
-  tag.style.left = x + 'px'; tag.style.top = y + 'px';
+// one label per building, always shown; the highlighted building's label pops
+const labelsEl = document.getElementById('pf-labels');
+const LABELS = HOUSE_PIX.map((hp, i) => {
+  const lb = document.createElement('div');
+  lb.className = 'pf-label';
+  const [k, t] = i === BOAT_I ? ['About me', 'Professional'] : i === KIWI_I ? ['About me', 'Personal'] : i === TOWER_I ? ['Contact', ''] : ['No. ' + PROJ[i].no, PROJ[i].label];
+  lb.innerHTML = '<b></b>'; lb.firstChild.textContent = k;
+  if (t) lb.appendChild(document.createTextNode(t));
+  lb.dataset.hi = i;
+  lb.addEventListener('click', () => openProject(i));
+  labelsEl.appendChild(lb);
+  return lb;
+});
+function placeLabels() {
+  const dpr = window.devicePixelRatio || 1;
+  LABELS.forEach((lb, i) => {
+    const hp = HOUSE_PIX[i], x = (DX + hp.cx / W * DW) / dpr, y = (DY + (hp.top - 4) / H * DH) / dpr;
+    lb.hidden = x < -30 || x > innerWidth + 30;   // building mostly cropped off this screen
+    lb.style.left = clamp(x, lb.offsetWidth / 2 + 6, innerWidth - lb.offsetWidth / 2 - 6) + 'px';
+    lb.style.top = Math.max(lb.offsetHeight + 8, y) + 'px';
+  });
 }
 function hoverHouse(hi) {
   if (hi === HOVER) return;
   HOVER = hi;
   syncLights();
-  if (hi < 0 || OPEN >= 0) { tag.classList.remove('show'); return; }
-  if (hi === BOAT_I) { tag.innerHTML = '<b>About me</b>'; tag.appendChild(document.createTextNode('Professional')); }
-  else if (hi === KIWI_I) { tag.innerHTML = '<b>About me</b>'; tag.appendChild(document.createTextNode('Personal')); }
-  else if (hi === TOWER_I) { tag.innerHTML = '<b>Contact</b>'; tag.appendChild(document.createTextNode('Get in touch')); }
-  else {
-    tag.innerHTML = '<b>No. ' + PROJ[hi].no + '</b>';
-    tag.appendChild(document.createTextNode(PROJ[hi].title));
-  }
-  placeTag(hi);
-  tag.classList.add('show');
+  LABELS.forEach((lb, i) => lb.classList.toggle('hot', i === hi && OPEN < 0));
 }
 // the selected house (open card, else hover) has all its lights on; only one house is lit up at a time
 let LIT_HOUSE = -1;
@@ -2752,7 +2769,7 @@ function openProject(hi) {
   const hc = houseCv.getContext('2d');
   hc.clearRect(0, 0, snap.width, snap.height); hc.drawImage(snap, 0, 0);
   pf.querySelectorAll('.pf-body').forEach(b => { b.scrollTop = 0; });
-  tag.classList.remove('show'); hint.classList.remove('show');
+  labelsEl.hidden = true; LABELS.forEach(lb => lb.classList.remove('hot')); hint.classList.remove('show');
   if (first) {
     pf.hidden = false;
     pf.querySelector('.pf-card').focus({ preventScroll: true });
@@ -2762,14 +2779,14 @@ function openProject(hi) {
 function closeProject() {
   if (OPEN < 0) return;
   OPEN = -1; HOVER = -1; syncLights();
-  pf.hidden = true;
+  pf.hidden = true; labelsEl.hidden = false;
   view.focus?.();
 }
 pf.addEventListener('click', e => { if (e.target.closest('[data-close]')) closeProject(); });
 $('pf-prev').addEventListener('click', () => openProject(isAbout(OPEN) ? aboutStep(OPEN, -1) : OPEN - 1));
 $('pf-next').addEventListener('click', () => openProject(isAbout(OPEN) ? aboutStep(OPEN, 1) : OPEN + 1));
 $('pf-work').addEventListener('click', () => openProject(0));
-addEventListener('resize', () => { fitHouse(); if (HOVER >= 0) placeTag(HOVER); });
+addEventListener('resize', () => { fitHouse(); placeLabels(); });
 // returns true when the open card handled the key, so scene shortcuts stay quiet behind it
 function projectKeys(e) {
   if (OPEN < 0) return false;
@@ -2806,6 +2823,8 @@ const hitAt = e => {
 };
 addEventListener('mousemove', e => {
   wake();
+  const lb = e.target.closest?.('.pf-label');
+  if (lb) { hoverHouse(+lb.dataset.hi); return; }
   const hit = e.target === view ? hitAt(e) : null;
   document.body.classList.toggle('hot', !!hit);
   hoverHouse(!hit ? -1 : hit.kind === 'house' ? hit.hi : hit.kind === 'boat' ? BOAT_I : hit.kind === 'tower' ? TOWER_I : hit.kind === 'kiwi' ? KIWI_I : -1);
@@ -2822,6 +2841,7 @@ addEventListener('keydown', e => {
   else if (k === 'l') toggleAllLights();
 });
 document.addEventListener('fullscreenchange', () => hint.classList.remove('show'));
+placeLabels(); document.fonts?.ready.then(placeLabels);
 wake();
 })();
 </script>
