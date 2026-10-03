@@ -334,7 +334,7 @@ const PORTFOLIO = [
     links: [['Case study', 'https://www.alphero.com/case-studies/2degrees-app-case-study']],
   },
   {
-    title: 'TVNZ+ and 1News', kind: 'Streaming and news', year: 'Alphero', accent: '#f79a3c',
+    title: 'TVNZ+ and 1News', slug: 'tvnz', kind: 'Streaming and news', year: 'Alphero', accent: '#f79a3c',
     tagline: "New Zealand's free-to-air broadcaster, live and on demand for over two million people.",
     summary: 'TVNZ+ streams live and on-demand TV, and 1News delivers the news with layouts driven from the backend through modular, API-rendered components. Keeping more than ten third-party platforms and SDKs healthy, including Segment and Nielsen analytics and Split A/B testing, took steady proactive maintenance. The work won a Silver at the Best Awards.',
     role: 'iOS development at Alphero',
@@ -343,7 +343,7 @@ const PORTFOLIO = [
     links: [['Case study', 'https://www.alphero.com/case-studies/tvnz-case-study']],
   },
   {
-    title: 'The Co-operative Bank', label: 'Co-op Bank', kind: 'Mobile banking app', year: 'Alphero', accent: '#6fb8c8',
+    title: 'The Co-operative Bank', label: 'Co-op Bank', slug: 'co-operative-bank', kind: 'Mobile banking app', year: 'Alphero', accent: '#6fb8c8',
     tagline: "Everyday mobile banking for The Co-operative Bank, New Zealand's customer-owned bank.",
     summary: "The Co-operative Bank's mobile banking app, designed and built at Alphero. Placeholder text: add what the app lets customers do, what you built on it, and the result.",
     role: 'iOS development at Alphero',
@@ -2726,6 +2726,7 @@ const PROJ = HOUSES.map((h, i) => {
     stack: d.stack || ['Swift', 'SwiftUI', 'Combine', 'Core Data'],
     links: d.links || [['App Store', '#'], ['Case study', '#'], ['GitHub', '#']],
     label: d.label || d.title || 'Coming soon',
+    slug: d.slug || (d.title || 'coming soon ' + (i + 1)).toLowerCase().replace(/\+/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
   };
 });
 const AB = (typeof ABOUT !== 'undefined' && ABOUT) || {};
@@ -2960,17 +2961,64 @@ function openProject(hi) {
     pf.querySelector('.pf-card').focus({ preventScroll: true });
   }
   fitHouse();
+  setRoute(OPEN);
 }
 function closeProject() {
   if (OPEN < 0) return;
   OPEN = -1; HOVER = -1; syncLights();
   pf.hidden = true; labelsEl.hidden = false;
+  setRoute(-1);
   view.focus?.();
 }
 pf.addEventListener('click', e => { if (e.target.closest('[data-close]')) closeProject(); });
 $('pf-prev').addEventListener('click', () => openProject(isAbout(OPEN) ? aboutStep(OPEN, -1) : OPEN - 1));
 $('pf-next').addEventListener('click', () => openProject(isAbout(OPEN) ? aboutStep(OPEN, 1) : OPEN + 1));
 $('pf-work').addEventListener('click', () => openProject(0));
+/* ---------- links: every card has its own address (/sharesies, /about …) ----------
+   Served over http the path changes (GitHub Pages sends unknown paths to 404.html, which bounces
+   back here as ?p=slug); opened as a local file it falls back to #slug. Back and forward work. */
+const SLUGS = PROJ.map(p => p.slug);
+SLUGS[BOAT_I] = 'about'; SLUGS[KIWI_I] = 'personal'; SLUGS[TOWER_I] = 'contact';
+const slugIndex = s => SLUGS.indexOf(decodeURIComponent(s || '').toLowerCase().replace(/^#|\/$/g, ''));
+const USE_HASH = location.protocol === 'file:';
+const BASE_PATH = (() => {
+  const p = location.pathname, last = p.slice(p.lastIndexOf('/') + 1);
+  return slugIndex(last) >= 0 || /\.html?$/.test(last) || last === '' ? p.slice(0, p.length - last.length) : p + '/';
+})();
+const BASE_TITLE = document.title;
+let ROUTING = false;
+function routeIndex() {
+  const q = new URLSearchParams(location.search).get('p');
+  if (q) return slugIndex(q);
+  if (location.hash.length > 1) return slugIndex(location.hash);
+  return USE_HASH ? -1 : slugIndex(location.pathname.slice(BASE_PATH.length));
+}
+function routeUrl(hi) {
+  const sp = new URLSearchParams(location.search); sp.delete('p');
+  const qs = sp.toString() ? '?' + sp : '';
+  if (USE_HASH) return location.pathname + qs + (hi >= 0 ? '#' + SLUGS[hi] : '');
+  return BASE_PATH + (hi >= 0 ? SLUGS[hi] : '') + qs;
+}
+function setRoute(hi, replace = false) {
+  document.title = hi >= 0 ? (hi === BOAT_I ? 'About me' : isAbout(hi) ? ABOUT_NAME[hi] : PROJ[hi].title) + ' · ' + BASE_TITLE : BASE_TITLE;
+  if (ROUTING) return;
+  const url = routeUrl(hi);
+  if (url === location.pathname + location.search + location.hash) return;
+  if (USE_HASH) {
+    if (replace) { try { history.replaceState(null, '', url); } catch (e) {} }
+    else location.hash = hi >= 0 ? SLUGS[hi] : '';
+    return;
+  }
+  history[replace ? 'replaceState' : 'pushState']({ hi }, '', url);
+}
+function followRoute() {
+  const hi = routeIndex();
+  ROUTING = true;
+  if (hi < 0) closeProject(); else if (hi !== OPEN) openProject(hi);
+  ROUTING = false;
+}
+addEventListener('popstate', followRoute);
+addEventListener('hashchange', () => { if (!ROUTING) { followRoute(); if (!USE_HASH) setRoute(OPEN, true); } });
 addEventListener('resize', () => { fitHouse(); placeLabels(); });
 // returns true when the open card handled the key, so scene shortcuts stay quiet behind it
 function projectKeys(e) {
@@ -3027,6 +3075,7 @@ addEventListener('keydown', e => {
 });
 document.addEventListener('fullscreenchange', () => hint.classList.remove('show'));
 placeLabels(); document.fonts?.ready.then(placeLabels);
+followRoute(); setRoute(OPEN, true);   // open a linked card and tidy ?p= / #slug into the clean address
 wake();
 })();
 </script>
