@@ -1,0 +1,28 @@
+{
+  "title": "Get in touch",
+  "tagline": "I'm based in Amsterdam and always happy to talk about iOS, building great mobile teams, or a project you have in mind.",
+  "rows": [
+    [
+      "Email",
+      "thomasdbcaskey@gmail.com",
+      "mailto:thomasdbcaskey@gmail.com"
+    ],
+    [
+      "Location",
+      "Amsterdam, Netherlands",
+      ""
+    ],
+    [
+      "LinkedIn",
+      "Add your profile link",
+      "#"
+    ],
+    [
+      "GitHub",
+      "Add your profile link",
+      "#"
+    ]
+  ],
+  "note": "References available on request.",
+  "accent": "#b8c2e8"
+}

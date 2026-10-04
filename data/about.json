@@ -1,0 +1,66 @@
+{
+  "name": "Thomas Caskey",
+  "role": "Lead Software Engineer, iOS",
+  "greeting": "Hi, I'm Thomas.",
+  "tagline": "I build innovative, customer-driven, native-first apps, where quality lives in the code and in the experience.",
+  "bio": [
+    "I'm a mobile developer with over ten years of experience, at my best working alongside product and design to solve real-world problems. I worked on some of Aotearoa New Zealand's most used apps at Alphero, led the mobile platform at Sharesies, and now build features for the Education team at Goodnotes from Amsterdam.",
+    "I care about creating a safe and open place to work, where diversity is advocated for and the culture supports both personal and professional growth."
+  ],
+  "facts": [
+    [
+      "Based in",
+      "Amsterdam, Netherlands"
+    ],
+    [
+      "Currently",
+      "Lead Software Engineer at Goodnotes"
+    ],
+    [
+      "Experience",
+      "10+ years building mobile apps"
+    ],
+    [
+      "Studied",
+      "BSc Computer Science, Victoria University of Wellington"
+    ]
+  ],
+  "skills": [
+    "Swift",
+    "SwiftUI",
+    "Objective-C",
+    "MVVM and MVP",
+    "Concurrency",
+    "Reactive programming",
+    "Unit, UI and snapshot testing",
+    "CI/CD",
+    "Feature flags and A/B tests",
+    "Accessibility",
+    "AI workflows",
+    "Mobile architecture"
+  ],
+  "experience": [
+    [
+      "Nov 2023 to now",
+      "Lead Software Engineer",
+      "Goodnotes, Education"
+    ],
+    [
+      "Sep 2021 to Sep 2023",
+      "Mobile Tech Lead",
+      "Sharesies"
+    ],
+    [
+      "Nov 2012 to Sep 2021",
+      "Developer, then Tech Lead from 2020",
+      "Alphero"
+    ]
+  ],
+  "links": [
+    [
+      "Email me",
+      "mailto:thomasdbcaskey@gmail.com"
+    ]
+  ],
+  "accent": "#ffc46a"
+}

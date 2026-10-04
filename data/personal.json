@@ -1,0 +1,51 @@
+{
+  "title": "Away from Xcode",
+  "tagline": "A line about who you are when the laptop is closed.",
+  "bio": [
+    "A paragraph about life outside work: what brought you from New Zealand to Amsterdam, and what you love about living here.",
+    "A second paragraph about the things that keep you busy: hobbies, sport, music, food, travel, family, or whatever you would talk about over a coffee."
+  ],
+  "photos": [
+    [
+      "",
+      "A photo you love"
+    ],
+    [
+      "",
+      "Somewhere you have been"
+    ],
+    [
+      "",
+      "Something you do for fun"
+    ]
+  ],
+  "facts": [
+    [
+      "Home",
+      "Amsterdam, by way of New Zealand"
+    ],
+    [
+      "Weekends",
+      "What a good weekend looks like"
+    ],
+    [
+      "Currently reading",
+      "A book you are enjoying"
+    ],
+    [
+      "On repeat",
+      "Music or a podcast you love"
+    ]
+  ],
+  "interests": [
+    "Interest",
+    "Hobby",
+    "Sport",
+    "Music",
+    "Food",
+    "Travel"
+  ],
+  "links": [],
+  "accent": "#a8c870",
+  "placeholder": true
+}
