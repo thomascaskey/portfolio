@@ -1,0 +1,216 @@
+[
+  {
+    "title": "Coming soon",
+    "placeholder": true,
+    "kind": "Coming soon",
+    "year": "Placeholder",
+    "accent": "#8a9ac4",
+    "tagline": "A one-line pitch for this app goes here: what it does and who it is for.",
+    "summary": "A short paragraph about the project: the problem, the approach, and what you are proud of. Mention a technical challenge you solved, a result such as downloads, ratings or a feature, and anything a hiring manager should know.",
+    "role": "Your role, e.g. Solo developer",
+    "platform": "iOS 17+ · iPhone",
+    "stack": [
+      "Swift",
+      "SwiftUI",
+      "Combine",
+      "Core Data"
+    ],
+    "links": [
+      [
+        "App Store",
+        "#"
+      ],
+      [
+        "Case study",
+        "#"
+      ],
+      [
+        "GitHub",
+        "#"
+      ]
+    ],
+    "label": "Coming soon",
+    "slug": "coming-soon-1"
+  },
+  {
+    "title": "RNZ",
+    "placeholder": false,
+    "kind": "Public radio app",
+    "year": "Alphero",
+    "accent": "#f0a04a",
+    "tagline": "Radio New Zealand's live stations, news and podcasts in one clean, ad-free app.",
+    "summary": "The RNZ app streams RNZ National, Concert, Pacific and Parliament live, alongside breaking news, on-demand programmes and podcasts. Listeners can bookmark, build a play queue and download episodes to listen offline, with nothing getting in the way of the content.",
+    "role": "iOS development at Alphero",
+    "platform": "iPhone, iPad and Android",
+    "stack": [
+      "Swift",
+      "Audio streaming",
+      "Offline downloads",
+      "News feed"
+    ],
+    "links": [
+      [
+        "App Store",
+        "https://apps.apple.com/nz/app/radio-new-zealand/id407890305"
+      ],
+      [
+        "About the app",
+        "https://www.rnz.co.nz/listen/app"
+      ]
+    ],
+    "label": "RNZ",
+    "slug": "rnz"
+  },
+  {
+    "title": "2degrees",
+    "placeholder": false,
+    "kind": "Telco self-service app",
+    "year": "Alphero",
+    "accent": "#ffc36a",
+    "tagline": "Letting hundreds of thousands of New Zealanders manage their mobile account themselves.",
+    "summary": "2degrees wanted customers to sort out their own accounts instead of calling the contact centre. The app lets people check their balance and data, top up, buy add-ons and change plans, across many plan types and account structures, with playful illustrations and a Kiwi tone of voice. It smashed every KPI set for it, and won a Best Awards Gold, a Good Design award and a Webby Honouree.",
+    "role": "iOS development at Alphero",
+    "platform": "iOS and Android",
+    "stack": [
+      "Swift",
+      "Account management",
+      "In-app purchases",
+      "Animation"
+    ],
+    "links": [
+      [
+        "Case study",
+        "https://www.alphero.com/case-studies/2degrees-app-case-study"
+      ]
+    ],
+    "label": "2degrees",
+    "slug": "2degrees"
+  },
+  {
+    "title": "TVNZ+ and 1News",
+    "placeholder": false,
+    "kind": "Streaming and news",
+    "year": "Alphero",
+    "accent": "#f79a3c",
+    "tagline": "New Zealand's free-to-air broadcaster, live and on demand for over two million people.",
+    "summary": "TVNZ+ streams live and on-demand TV, and 1News delivers the news with layouts driven from the backend through modular, API-rendered components. Keeping more than ten third-party platforms and SDKs healthy, including Segment and Nielsen analytics and Split A/B testing, took steady proactive maintenance. The work won a Silver at the Best Awards.",
+    "role": "iOS development at Alphero",
+    "platform": "iOS, Apple TV, Android and web",
+    "stack": [
+      "Swift",
+      "Video streaming",
+      "tvOS",
+      "A/B testing",
+      "Analytics SDKs"
+    ],
+    "links": [
+      [
+        "Case study",
+        "https://www.alphero.com/case-studies/tvnz-case-study"
+      ]
+    ],
+    "label": "TVNZ+ and 1News",
+    "slug": "tvnz"
+  },
+  {
+    "title": "The Co-operative Bank",
+    "placeholder": false,
+    "kind": "Mobile banking app",
+    "year": "Alphero",
+    "accent": "#6fb8c8",
+    "tagline": "Everyday mobile banking for The Co-operative Bank, New Zealand's customer-owned bank.",
+    "summary": "The Co-operative Bank's mobile banking app, designed and built at Alphero. Placeholder text: add what the app lets customers do, what you built on it, and the result.",
+    "role": "iOS development at Alphero",
+    "platform": "iOS and Android",
+    "stack": [
+      "Swift",
+      "Mobile banking",
+      "Security"
+    ],
+    "links": [
+      [
+        "Best Awards",
+        "https://bestawards.co.nz/digital/digital-products/alphero/the-co-operative-bank-mobile-banking/"
+      ]
+    ],
+    "label": "Co-op Bank",
+    "slug": "co-operative-bank"
+  },
+  {
+    "title": "Drive Go",
+    "placeholder": false,
+    "kind": "Learn-to-drive app",
+    "year": "2019",
+    "accent": "#d6a236",
+    "tagline": "New Zealand's first learn-to-drive app, built to make roads safer.",
+    "summary": "Built for NZ Transport Agency Waka Kotahi with ACC and the Ministry of Education, Drive Go guides learner drivers along a road-shaped path with city or rural routes, playful award badges and Lottie animations. Lessons were reordered to put crash-prevention skills first, and the app includes machine-learning licence scanning. It won Gold at the Best Awards and a Good Design Gold.",
+    "role": "iOS development at Alphero",
+    "platform": "iOS and Android",
+    "stack": [
+      "Swift",
+      "Gamification",
+      "Lottie",
+      "ML licence scanning"
+    ],
+    "links": [
+      [
+        "Case study",
+        "https://www.alphero.com/case-studies/drive-go-app-case-study"
+      ]
+    ],
+    "label": "Drive Go",
+    "slug": "drive-go"
+  },
+  {
+    "title": "Sharesies",
+    "placeholder": false,
+    "kind": "Investing platform",
+    "year": "2021 to 2023",
+    "accent": "#7fbfa8",
+    "tagline": "Leading Sharesies from the start of its mobile journey to a scalable native platform.",
+    "summary": "I joined Sharesies at the beginning of its mobile journey and owned the iOS platform: building the team, setting the roadmap and choosing our practices. I worked closely with leadership to advocate for a considered shift towards mobile. Our principles of cohesion and simplicity shaped how the apps joined existing systems, and they were built in SwiftUI with an easy to understand, modular structure.",
+    "role": "Mobile Tech Lead",
+    "platform": "iOS",
+    "stack": [
+      "Swift",
+      "SwiftUI",
+      "Modular architecture",
+      "Roadmapping",
+      "Team building"
+    ],
+    "links": [
+      [
+        "Sharesies",
+        "https://www.sharesies.com"
+      ]
+    ],
+    "label": "Sharesies",
+    "slug": "sharesies"
+  },
+  {
+    "title": "Goodnotes",
+    "placeholder": false,
+    "kind": "Education",
+    "year": "2023 to now",
+    "accent": "#d46a2e",
+    "tagline": "Building new features for the Goodnotes Education team, fully in SwiftUI.",
+    "summary": "Since moving to Amsterdam I have worked fully remote in the Education team at Goodnotes, owning and building new features end to end with developers, product and designers. Goodnotes is a large, complex, cross-platform codebase that people use for long stretches of time, so continuous releases stay high quality through strong testing and QA practices. I have also helped teammates bring AI workflows into their daily work while keeping the human touch.",
+    "role": "Lead Software Engineer",
+    "platform": "iPad, iPhone and Mac",
+    "stack": [
+      "Swift",
+      "SwiftUI",
+      "Testing and QA",
+      "Continuous releases",
+      "AI workflows"
+    ],
+    "links": [
+      [
+        "Goodnotes for Education",
+        "https://www.goodnotes.com/education"
+      ]
+    ],
+    "label": "Goodnotes",
+    "slug": "goodnotes"
+  }
+]
