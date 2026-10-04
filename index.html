@@ -1111,20 +1111,39 @@ function drawNews(h) {
   rect(bx, 208, 4, 1, C('#b02a2a')); rect(bx, 210, 3, 1, C('#4a4a52'));
   glow(Afar, (wx0 + wx1) / 2, 205, 24, 16, WINL, 0.4, { bands: 4, pow: 1.5, lm: LM, lmI: 0.5 });
 }
-// Drive Go: a garage with the roller door half up and a car inside
+// Drive Go: a plain canal house with a front door and an open garage, a car parked inside seen from the back
 function drawGarage(h) {
-  const x0 = h.x, w = h.w, body = C('#2c2226'), G = LIT.warm;
-  shopBase(h, body, C('#5a1a1a'), C('#2a0c0c'), 'GARAGE', C('#f4e2b0'));
-  const ox0 = x0 + 5, ox1 = x0 + w - 6;
-  litBox(ox0, ox1, 201, 213, G, 1.5);
-  for (let y = 194; y <= 200; y++) for (let x = ox0; x <= ox1; x++) px(x, y, y === 200 ? C('#20242e') : (y & 1) ? C('#4a5266') : C('#3a4256'));
-  const cx = Math.round((ox0 + ox1) / 2), car = C('#2a3a6a'), carL = C('#3a4e88');
-  rect(cx - 13, 204, 26, 6, car); rect(cx - 13, 204, 26, 1, carL); rect(cx + 11, 206, 2, 1, C('#ffe9a8'));
-  for (const wx of [cx - 8, cx + 8]) for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) if (dx * dx + dy * dy < 6) px(wx + dx, 211 + dy, dx === 0 && dy === 0 ? C('#6a6a72') : C('#0c0c10'), 1);
-  rect(ox1 - 4, 207, 3, 6, C('#7a2a22'), 1); rect(ox1 - 4, 209, 3, 1, C('#a8a8b0'), 1);   // oil drum
-  for (let y = 194; y <= 213; y++) { px(ox0 - 1, y, C('#16121a')); px(ox1 + 1, y, C('#16121a')); }
-  glow(Afar, cx, 208, 30, 12, WINL, 0.45, { bands: 4, pow: 1.4, lm: LM, lmI: 0.5 });
-  glow(Afar, cx, 217, 30, 5, WINL, 0.35, { bands: 3, lm: LM, lmI: 0.3 });
+  const m = h.mc, x0 = h.x, w = h.w, G = LIT.warm;
+  // front door with fanlight and stoop on the left
+  const dx = x0 + 4, dw = 7;
+  rect(dx - 1, 186, dw + 2, 24, m.trim);
+  for (let i = 0; i < dw; i++) for (let j = 0; j < 3; j++) px(dx + i, 187 + j, (i % 2 === 1 && j > 0) ? m.trim : (j === 0 ? C('#e89a48') : C('#ffc46a')), 1);
+  glow(Afar, dx + dw / 2, 188.5, 8, 5, WINL, 0.28, { bands: 3, lm: LM, lmI: 0.25 });
+  const doorC = C('#1f2c2a'), panel = mix(doorC, C('#000000'), 0.35);
+  rect(dx, 191, dw, 19, doorC);
+  for (let j = 193; j < 208; j++) { px(dx + 1, j, panel); px(dx + dw - 2, j, panel); }
+  px(dx + dw - 2, 200, C('#b08a50'));
+  for (let j = 0; j < 4; j++) rect(dx - 2 - j, 210 + j, dw + 4 + 2 * j, 1, j === 0 ? m.trimL : m.trim);
+  STOOPS.push({ x: dx - 5, w: dw + 10 });
+  // garage opening: stone frame, roller door rolled up, warm light inside
+  const gx0 = dx + dw + 6, gx1 = x0 + w - 4, gy0 = 190;
+  for (let x = gx0 - 2; x <= gx1 + 2; x++) { px(x, gy0 - 2, m.trimL); px(x, gy0 - 1, m.trim); }
+  for (let y = gy0; y < ST; y++) { px(gx0 - 2, y, m.trim); px(gx0 - 1, y, m.trimD); px(gx1 + 1, y, m.trimD); px(gx1 + 2, y, m.trim); }
+  litBox(gx0, gx1, gy0, ST - 1, G, 1.2);
+  for (let y = gy0; y <= gy0 + 3; y++) for (let x = gx0; x <= gx1; x++) px(x, y, y === gy0 + 3 ? C('#20242e') : (y & 1) ? C('#4a5266') : C('#3a4256'));
+  for (let x = gx0 + 2; x <= gx1 - 2; x += 5) { px(x, gy0 + 6, C('#3a2a1e'), 1); px(x + 1, gy0 + 6, C('#3a2a1e'), 1); px(x, gy0 + 7, C('#5a3a22'), 1); }   // shelf with tins
+  for (let x = gx0 + 1; x < gx1; x++) px(x, gy0 + 8, C('#2a1e18'), 1);
+  // the car, from the back: roof, rear window, body, tail lights, plate, tyres
+  const cx = Math.round((gx0 + gx1) / 2), car = C('#2a3a6a'), carL = C('#3a4e88'), carD = C('#1a2444');
+  for (let y = 197; y <= 202; y++) { const hw = y === 197 ? 6 : y === 198 ? 8 : 9; for (let x = cx - hw; x < cx + hw; x++) px(x, y, y === 197 ? carL : (y >= 199 && y <= 201 && x > cx - hw && x < cx + hw - 1) ? (x - cx === y - 203 ? C('#4a5a78') : C('#141a28')) : car, 1); }
+  for (let y = 203; y <= 209; y++) for (let x = cx - 12; x < cx + 12; x++) px(x, y, y === 203 ? carL : x === cx - 12 ? carD : y === 209 ? carD : car, 1);
+  for (const lx of [cx - 12, cx + 9]) { rect(lx, 204, 3, 2, C('#ff3a2a'), 1); px(lx + (lx < cx ? 0 : 2), 204, C('#ffb0a0'), 1); glow(Afar, lx + 1.5, 205, 5, 3, C('#ff3a2a'), 0.35, { bands: 2 }); }
+  rect(cx - 4, 206, 8, 2, C('#e8c23a'), 1); px(cx - 2, 206, C('#2a2410'), 1); px(cx + 1, 207, C('#2a2410'), 1);   // Dutch yellow plate
+  rect(cx - 12, 210, 24, 1, C('#16161c'), 1);
+  for (const tx of [cx - 11, cx + 7]) rect(tx, 211, 4, 3, C('#0c0c10'), 1);
+  rect(cx - 7, 211, 14, 1, C('#1a140e'), 1);
+  glow(Afar, (gx0 + gx1) / 2, 204, 22, 12, WINL, 0.35, { bands: 4, pow: 1.4, lm: LM, lmI: 0.5 });
+  glow(Afar, (gx0 + gx1) / 2, 216, 22, 4, WINL, 0.3, { bands: 3, lm: LM, lmI: 0.3 });
 }
 // Sharesies: the stock exchange, after Berlage's Beurs on the Damrak: brick, stone bands, round arches, a corner tower and a ticker
 function drawBeurs(h) {
