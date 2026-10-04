@@ -2422,44 +2422,6 @@ function drawCyclist(t) {
   fadd(x + 8, fy - 7, 90, 80, 50); fadd(x + 9, fy - 7, 45, 40, 25); fadd(x + 7, fy - 6, 40, 35, 20);
   fpx(x - 8, fy - 6, 255, 60, 40); fadd(x - 9, fy - 6, 60, 10, 5);
 }
-/* ---------- people walking past along the front quay (drawn 2x, nearest the viewer) ---------- */
-const NEAR_FOLK = {
-  umbrella: { rows: WALKER, legs: WALK_LEGS, col: { u: C('#9a6a22'), r: C('#c08a30'), s: C('#202028'), h: C('#4a3026'), f: C('#b07a60'), c: C('#3e3a5c'), a: C('#4a4668'), l: C('#18171f') } },
-  brolly: { rows: WALKER, legs: WALK_LEGS, col: { u: C('#8a2430'), r: C('#b0404a'), s: C('#202028'), h: C('#2a1e1a'), f: C('#c08870'), c: C('#3a4a44'), a: C('#465a52'), l: C('#18171f') } },
-  beanie: {
-    rows: ['..bbbb...', '.bbbbbb..', '..hfff...', '..hffe...', '..sssss..', '.ccccccs.', '.ccccccc.', '.cccccca.', '.cccccca.', '.cccccc..', '..cccc...', '..cccc...'],
-    legs: [['..l..l...', '.l....l..', '.k....k..'], ['...ll....', '...ll....', '...kk....']],
-    col: { b: C('#a03a34'), h: C('#3a2a22'), f: C('#c08a6c'), e: C('#5a3a30'), s: C('#e0a848'), c: C('#2e4246'), a: C('#3a5458'), l: C('#1a1a22'), k: C('#0e0e12') },
-  },
-};
-const DOG = [['.....dd', 'dddddd.', 'dddddd.', 'd.d..d.'], ['.....dd', 'dddddd.', 'dddddd.', '.d.dd..']];
-// who walks when: [figure, start s, seconds to cross, direction (1 = to the right), dog]
-const NEAR_WALKS = [['umbrella', 4, 22, -1, false], ['beanie', 24, 26, 1, true], ['brolly', 40, 20, -1, false]];
-const NEAR_FEET = 340;
-function nearSprite(x0, yTop, rows, col, flip, lm) {
-  rows.forEach((row, j) => {
-    for (let i = 0; i < row.length; i++) {
-      const c = col[row[flip ? row.length - 1 - i : i]];
-      if (!c) continue;
-      const r = c[0] + lm * 110, g = c[1] + lm * 70, b = c[2] + lm * 30;
-      for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) fpx(x0 + i * 2 + dx, yTop + j * 2 + dy, r, g, b);
-    }
-  });
-}
-function drawNearWalkers(t) {
-  for (const [kind, t0, dur, dir, dog] of NEAR_WALKS) {
-    if (t < t0 || t >= t0 + dur) continue;
-    const u = (t - t0) / dur, x = Math.round(dir > 0 ? -40 + u * 720 : 680 - u * 720);
-    const P = NEAR_FOLK[kind], step = Math.floor(t * 3.2) & 1, rows = P.rows.concat(P.legs[step]);
-    const w = rows[0].length * 2, top = NEAR_FEET - rows.length * 2, lm = Math.min(1, lightAtF(x, NEAR_FEET - 16) * 1.2);
-    nearSprite(x - w / 2, top, rows, P.col, dir < 0, lm);
-    if (dog) {
-      const dx = x - dir * 22, d = DOG[step];
-      nearSprite(dx - 7, NEAR_FEET - d.length * 2, d, { d: C('#5a3e2c') }, dir < 0, lm);
-      fline(x + dir * 5, top + 16, dx + dir * 6, NEAR_FEET - 7, C('#5a2a2a'), lm);   // lead
-    }
-  }
-}
 function drawCat(t) {
   if (!CAT) return;
   const bx = CAT.x + 1, by = CAT.y + CAT.gh - 1, c = [26, 16, 22];
@@ -2659,7 +2621,6 @@ function render(t) {
   drawClickRipples(true);
   drawSprite(HALO_SPR, haloK(t));
   stage('near', t);
-  drawNearWalkers(t);
   drawSparks(t);
   drawLeaves(LEAVES_NEAR, t, true, 'air');
   drawBursts(true, 'air');
