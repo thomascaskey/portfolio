@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Amsterdam Autumn Rain</title>
+<script>
+  // GitHub Pages serves this for any unknown path, such as /portfolio/sharesies.
+  // Send it back to the page as ?p=sharesies; the page opens that card and restores the clean address.
+  (function (l) {
+    var slug = l.pathname.replace(/\/$/, '').split('/').pop();
+    var base = l.pathname.replace(/\/$/, '').replace(/[^/]*$/, '');
+    var q = l.search ? '&' + l.search.slice(1) : '';
+    l.replace(base + '?p=' + encodeURIComponent(slug) + q + l.hash);
+  })(window.location);
+</script>
+</head>
+<body></body>
+</html>
