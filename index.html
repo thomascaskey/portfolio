@@ -26,6 +26,16 @@
     opacity: 0; transition: opacity .6s; pointer-events: none;
   }
   #hint.show { opacity: 1; }
+  @media (max-width: 760px) { #hint { white-space: normal; text-align: center; width: max-content; max-width: calc(100vw - 32px); bottom: 18px; } }
+  /* narrow screens: arrows at the edges while there is more canal to see that way */
+  .pan-btn {
+    position: fixed; top: 50%; z-index: 4; width: 34px; height: 44px; margin-top: -22px; border: 0; padding: 0; cursor: pointer;
+    font: 600 18px/44px var(--pf-pixel, monospace); color: #fff2c4; background: rgba(8, 10, 24, .7);
+    box-shadow: 0 0 0 2px #3d4579; transition: opacity .2s; -webkit-tap-highlight-color: transparent;
+  }
+  .pan-btn[hidden] { display: none; }
+  .pan-btn.off { opacity: 0; pointer-events: none; }
+  #pan-l { left: 8px; } #pan-r { right: 8px; }
 
   /* ---------- portfolio: house label + project card ---------- */
   :root {
@@ -231,6 +241,8 @@
 <div id="toast"></div>
 <div id="hint">Click a house to open its project · Shift-click windows · L lights · R rain · F fullscreen</div>
 <div id="pf-labels"></div>
+<button class="pan-btn" id="pan-l" aria-label="Look left along the canal" hidden>&lsaquo;</button>
+<button class="pan-btn" id="pan-r" aria-label="Look right along the canal" hidden>&rsaquo;</button>
 <div id="pf" class="pf" hidden role="dialog" aria-modal="true" aria-labelledby="pf-title">
   <div class="pf-scrim" data-close></div>
   <div class="pf-frame">
@@ -2663,6 +2675,7 @@ const off = document.createElement('canvas');
 off.width = W; off.height = H;
 const octx = off.getContext('2d');
 let DX = 0, DY = 0, DW = W, DH = H;
+let PAN = 0.5;   // where along the quay a narrow screen is looking: 0 = left end, 1 = right end
 let CONTAIN = new URLSearchParams(location.search).get('fit') === 'contain';
 function resize() {
   const dpr = window.devicePixelRatio || 1, cw = Math.round(innerWidth * dpr), ch = Math.round(innerHeight * dpr);
@@ -2672,7 +2685,7 @@ function resize() {
   const si = Math.round(s);
   if (Math.abs(s - si) < 0.03 && si * W >= cw - 2 && si * H >= ch - 2) s = si;
   DW = Math.round(W * s); DH = Math.round(H * s);
-  DX = Math.floor((cw - DW) / 2); DY = Math.floor((ch - DH) / 2);
+  DX = DW > cw ? Math.round((cw - DW) * PAN) : Math.floor((cw - DW) / 2); DY = Math.floor((ch - DH) / 2);
   vctx.imageSmoothingEnabled = false;
   vctx.fillStyle = '#05060c'; vctx.fillRect(0, 0, cw, ch);
 }
@@ -2962,12 +2975,15 @@ function openProject(hi) {
   }
   fitHouse();
   setRoute(OPEN);
+  if (canPan()) setPan(panToScene(HOUSE_PIX[OPEN].cx));
+  panArrows();
 }
 function closeProject() {
   if (OPEN < 0) return;
   OPEN = -1; HOVER = -1; syncLights();
   pf.hidden = true; labelsEl.hidden = false;
   setRoute(-1);
+  panArrows();
   view.focus?.();
 }
 pf.addEventListener('click', e => { if (e.target.closest('[data-close]')) closeProject(); });
@@ -3020,6 +3036,55 @@ function followRoute() {
 addEventListener('popstate', followRoute);
 addEventListener('hashchange', () => { if (!ROUTING) { followRoute(); if (!USE_HASH) setRoute(OPEN, true); } });
 addEventListener('resize', () => { fitHouse(); placeLabels(); });
+/* ---------- narrow screens: walk along the quay ----------
+   The scene stays full height (big, crisp pixels) and a phone shows a slice of it; drag, the edge
+   arrows or the arrow keys pan along the canal, and opening a card brings its building into view. */
+const panL = $('pan-l'), panR = $('pan-r');
+const canPan = () => DW > view.width + 2;
+const panSpan = () => (DW - view.width) / (window.devicePixelRatio || 1);   // css px from one end to the other
+let panAnim = 0;
+function setPan(u) {
+  PAN = clamp(u, 0, 1);
+  if (canPan()) DX = Math.round((view.width - DW) * PAN);
+  placeLabels(); panArrows();
+}
+function panArrows() {
+  const on = canPan() && OPEN < 0;
+  panL.hidden = panR.hidden = !on;
+  panL.classList.toggle('off', PAN < 0.01); panR.classList.toggle('off', PAN > 0.99);
+}
+function panTo(u, ms = 450) {
+  cancelAnimationFrame(panAnim);
+  const from = PAN, to = clamp(u, 0, 1), t0 = performance.now();
+  const step = now => { const k = Math.min(1, (now - t0) / ms), e = 1 - (1 - k) ** 3; setPan(from + (to - from) * e); if (k < 1) panAnim = requestAnimationFrame(step); };
+  panAnim = requestAnimationFrame(step);
+}
+const panToScene = sx => canPan() && (view.width / 2 - sx / W * DW) / (view.width - DW);   // PAN that centres scene x
+panL.addEventListener('click', () => panTo(PAN - 0.4));
+panR.addEventListener('click', () => panTo(PAN + 0.4));
+let drag = null, dragged = false;
+view.style.touchAction = 'none';
+view.addEventListener('pointerdown', e => {
+  if (!canPan()) return;
+  cancelAnimationFrame(panAnim);
+  drag = { x: e.clientX, pan: PAN, lx: e.clientX, lt: performance.now(), v: 0 }; dragged = false;
+});
+addEventListener('pointermove', e => {
+  if (!drag) return;
+  if (!dragged && Math.abs(e.clientX - drag.x) > 8) dragged = true;
+  if (!dragged) return;
+  const now = performance.now(), dt = Math.max(1, now - drag.lt);
+  drag.v = drag.v * 0.6 + (e.clientX - drag.lx) / dt * 0.4; drag.lx = e.clientX; drag.lt = now;
+  setPan(drag.pan - (e.clientX - drag.x) / panSpan());
+});
+function endDrag() {
+  if (!drag) return;
+  let v = dragged ? drag.v : 0; drag = null;
+  const glide = () => { if (Math.abs(v) < 0.02) return; setPan(PAN - v * 16 / panSpan()); v *= 0.92; panAnim = requestAnimationFrame(glide); };
+  panAnim = requestAnimationFrame(glide);
+}
+addEventListener('pointerup', endDrag); addEventListener('pointercancel', endDrag);
+addEventListener('resize', () => setPan(PAN));
 // returns true when the open card handled the key, so scene shortcuts stay quiet behind it
 function projectKeys(e) {
   if (OPEN < 0) return false;
@@ -3063,7 +3128,7 @@ addEventListener('mousemove', e => {
   hoverHouse(!hit ? -1 : hit.kind === 'house' ? hit.hi : hit.kind === 'boat' ? BOAT_I : hit.kind === 'tower' ? TOWER_I : hit.kind === 'kiwi' ? KIWI_I : -1);
 });
 view.addEventListener('mouseleave', () => hoverHouse(-1));
-view.addEventListener('click', e => interact(hitAt(e), e));
+view.addEventListener('click', e => { if (dragged) { dragged = false; return; } interact(hitAt(e), e); });
 view.addEventListener('dblclick', e => { if (!hitAt(e)) toggleFs(); });   // double-click empty sky/street for fullscreen
 addEventListener('keydown', e => {
   if (e.ctrlKey || e.metaKey || e.altKey) return;
@@ -3072,9 +3137,12 @@ addEventListener('keydown', e => {
   if (k === 'f') toggleFs();
   else if (k === 'r') cycleRain();
   else if (k === 'l') toggleAllLights();
+  else if ((k === 'arrowleft' || k === 'arrowright') && canPan()) panTo(PAN + (k === 'arrowleft' ? -0.25 : 0.25), 300);
 });
 document.addEventListener('fullscreenchange', () => hint.classList.remove('show'));
 placeLabels(); document.fonts?.ready.then(placeLabels);
+if (matchMedia('(pointer: coarse)').matches || canPan()) hint.textContent = 'Swipe to walk along the canal · Tap a building to open it';
+panArrows();
 followRoute(); setRoute(OPEN, true);   // open a linked card and tidy ?p= / #slug into the clean address
 wake();
 })();
